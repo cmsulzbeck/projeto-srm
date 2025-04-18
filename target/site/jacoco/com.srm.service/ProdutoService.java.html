@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProdutoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.service</a> &gt; <span class="el_source">ProdutoService.java</span></div><h1>ProdutoService.java</h1><pre class="source lang-java linenums">package com.srm.service;
+
+import com.srm.dto.ProdutoDTO;
+import com.srm.entity.Moeda;
+import com.srm.entity.Produto;
+import com.srm.exception.ProdutoNaoEncontradoException;
+import com.srm.mapper.ProdutoMapper;
+import com.srm.repository.ProdutoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+<span class="fc" id="L16">@RequiredArgsConstructor</span>
+public class ProdutoService {
+
+    private final ProdutoRepository produtoRepository;
+    private final MoedaService moedaService;
+    private final ProdutoMapper produtoMapper;
+
+    @Transactional
+    public ProdutoDTO criar(ProdutoDTO produtoDTO) {
+<span class="fc" id="L25">        Moeda moeda = moedaService.buscarEntidadePorCodigo(produtoDTO.getMoedaCodigo());</span>
+<span class="pc bpc" id="L26" title="1 of 2 branches missed.">        if (moeda == null) {</span>
+<span class="nc" id="L27">            throw new IllegalArgumentException(&quot;Moeda não encontrada: &quot; + produtoDTO.getMoedaCodigo());</span>
+        }
+        
+<span class="fc" id="L30">        Produto produto = produtoMapper.toEntity(produtoDTO);</span>
+<span class="fc" id="L31">        produto.setMoeda(moeda);</span>
+        
+<span class="fc" id="L33">        Produto produtoSalvo = produtoRepository.save(produto);</span>
+<span class="fc" id="L34">        return produtoMapper.toDTO(produtoSalvo);</span>
+    }
+
+    @Transactional
+    public ProdutoDTO atualizar(Long id, ProdutoDTO produtoDTO) {
+<span class="fc" id="L39">        Produto produto = produtoRepository.findById(id)</span>
+<span class="fc" id="L40">                .orElseThrow(() -&gt; new ProdutoNaoEncontradoException(id));</span>
+
+<span class="fc" id="L42">        Moeda moeda = moedaService.buscarEntidadePorCodigo(produtoDTO.getMoedaCodigo());</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (moeda == null) {</span>
+<span class="nc" id="L44">            throw new IllegalArgumentException(&quot;Moeda não encontrada: &quot; + produtoDTO.getMoedaCodigo());</span>
+        }
+
+<span class="fc" id="L47">        produtoMapper.updateEntityFromDTO(produtoDTO, produto);</span>
+<span class="fc" id="L48">        produto.setMoeda(moeda);</span>
+        
+<span class="fc" id="L50">        Produto produtoAtualizado = produtoRepository.save(produto);</span>
+<span class="fc" id="L51">        return produtoMapper.toDTO(produtoAtualizado);</span>
+    }
+
+    public ProdutoDTO buscarPorId(Long id) {
+<span class="fc" id="L55">        return produtoRepository.findById(id)</span>
+<span class="fc" id="L56">                .map(produtoMapper::toDTO)</span>
+<span class="fc" id="L57">                .orElseThrow(() -&gt; new ProdutoNaoEncontradoException(id));</span>
+    }
+
+    public List&lt;ProdutoDTO&gt; listarTodos() {
+<span class="fc" id="L61">        return produtoRepository.findAll().stream()</span>
+<span class="fc" id="L62">                .map(produtoMapper::toDTO)</span>
+<span class="fc" id="L63">                .toList();</span>
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (!produtoRepository.existsById(id)) {</span>
+<span class="fc" id="L69">            throw new ProdutoNaoEncontradoException(id);</span>
+        }
+<span class="fc" id="L71">        produtoRepository.deleteById(id);</span>
+<span class="fc" id="L72">    }</span>
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.srm.controller.MoedaControllerTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.757 s -- in com.srm.controller.MoedaControllerTest

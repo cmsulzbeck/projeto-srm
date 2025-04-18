@@ -1,0 +1,13 @@
+com\srm\entity\MoedaTest.class
+com\srm\service\ProdutoServiceTest.class
+com\srm\service\MoedaServiceTest.class
+com\srm\mapper\MoedaMapperTest.class
+com\srm\entity\ProdutoTest.class
+com\srm\exception\GlobalExceptionHandlerTest.class
+com\srm\dto\MoedaDTOTest.class
+com\srm\mapper\ProdutoMapperTest.class
+com\srm\model\MoedaTest.class
+com\srm\model\ProdutoTest.class
+com\srm\controller\MoedaControllerTest.class
+com\srm\dto\ProdutoDTOTest.class
+com\srm\controller\ProdutoControllerTest.class

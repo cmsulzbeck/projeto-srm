@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransacaoBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.builder</a> &gt; <span class="el_source">TransacaoBuilder.java</span></div><h1>TransacaoBuilder.java</h1><pre class="source lang-java linenums">package com.srm.builder;
+
+import com.srm.entity.Produto;
+import com.srm.entity.Transacao;
+import com.srm.entity.TipoTransacao;
+import java.time.LocalDateTime;
+
+public class TransacaoBuilder {
+    private Transacao transacao;
+
+<span class="nc" id="L11">    public TransacaoBuilder() {</span>
+<span class="nc" id="L12">        this.transacao = new Transacao();</span>
+<span class="nc" id="L13">    }</span>
+
+    public TransacaoBuilder comProduto(Produto produto) {
+<span class="nc" id="L16">        this.transacao.setProduto(produto);</span>
+<span class="nc" id="L17">        return this;</span>
+    }
+
+    public TransacaoBuilder comQuantidade(Integer quantidade) {
+<span class="nc" id="L21">        this.transacao.setQuantidade(quantidade);</span>
+<span class="nc" id="L22">        return this;</span>
+    }
+
+    public TransacaoBuilder comValorTotal(Double valorTotal) {
+<span class="nc" id="L26">        this.transacao.setValorTotal(valorTotal);</span>
+<span class="nc" id="L27">        return this;</span>
+    }
+
+    public TransacaoBuilder comDataTransacao(LocalDateTime dataTransacao) {
+<span class="nc" id="L31">        this.transacao.setDataTransacao(dataTransacao);</span>
+<span class="nc" id="L32">        return this;</span>
+    }
+
+    public TransacaoBuilder comTipo(TipoTransacao tipo) {
+<span class="nc" id="L36">        this.transacao.setTipo(tipo);</span>
+<span class="nc" id="L37">        return this;</span>
+    }
+
+    public Transacao build() {
+<span class="nc" id="L41">        return this.transacao;</span>
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransacaoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.controller</a> &gt; <span class="el_source">TransacaoController.java</span></div><h1>TransacaoController.java</h1><pre class="source lang-java linenums">package com.srm.controller;
+
+import com.srm.dto.TransacaoDTO;
+import com.srm.service.TransacaoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+<span class="nc" id="L14">@Slf4j</span>
+@RestController
+@RequestMapping(&quot;/api/transacoes&quot;)
+@Tag(name = &quot;Transações&quot;, description = &quot;API para gerenciamento de transações&quot;)
+<span class="nc" id="L18">@RequiredArgsConstructor</span>
+public class TransacaoController {
+
+    private final TransacaoService transacaoService;
+
+    @GetMapping
+    @Operation(summary = &quot;Listar todas as transações&quot;)
+    public ResponseEntity&lt;List&lt;TransacaoDTO&gt;&gt; listarTodas() {
+<span class="nc" id="L26">        log.info(&quot;Listando todas as transações&quot;);</span>
+<span class="nc" id="L27">        List&lt;TransacaoDTO&gt; transacoes = transacaoService.listarTodas();</span>
+<span class="nc" id="L28">        log.info(&quot;Total de transações encontradas: {}&quot;, transacoes.size());</span>
+<span class="nc" id="L29">        return ResponseEntity.ok(transacoes);</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    @Operation(summary = &quot;Buscar transação por ID&quot;)
+    public ResponseEntity&lt;TransacaoDTO&gt; buscarPorId(@PathVariable Long id) {
+<span class="nc" id="L35">        log.info(&quot;Buscando transação por ID: {}&quot;, id);</span>
+<span class="nc" id="L36">        TransacaoDTO transacao = transacaoService.buscarPorId(id);</span>
+<span class="nc" id="L37">        log.info(&quot;Transação encontrada: {}&quot;, transacao);</span>
+<span class="nc" id="L38">        return ResponseEntity.ok(transacao);</span>
+    }
+
+    @PostMapping
+    @Operation(summary = &quot;Registrar nova transação&quot;)
+    public ResponseEntity&lt;TransacaoDTO&gt; registrarTransacao(@RequestBody TransacaoDTO transacaoDTO) {
+<span class="nc" id="L44">        log.info(&quot;Registrando nova transação: {}&quot;, transacaoDTO);</span>
+<span class="nc" id="L45">        TransacaoDTO transacaoRegistrada = transacaoService.registrarTransacao(transacaoDTO);</span>
+<span class="nc" id="L46">        log.info(&quot;Transação registrada com sucesso: {}&quot;, transacaoRegistrada);</span>
+<span class="nc" id="L47">        return ResponseEntity.ok(transacaoRegistrada);</span>
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
