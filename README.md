@@ -51,6 +51,88 @@ O sistema utiliza H2 Database em memória com inicialização automática de dad
 - Usuário: `sa`
 - Senha: `password`
 
+### Script de Criação das Tabelas
+```sql
+-- Tabela de Moedas
+CREATE TABLE moeda (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    codigo VARCHAR(3) NOT NULL,
+    taxa_cambio DECIMAL(19,4) NOT NULL,
+    data_atualizacao TIMESTAMP NOT NULL
+);
+
+-- Tabela de Reinos
+CREATE TABLE reino (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao VARCHAR(255)
+);
+
+-- Tabela de Produtos
+CREATE TABLE produto (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao VARCHAR(255),
+    preco DECIMAL(19,4) NOT NULL,
+    quantidade_estoque INT NOT NULL,
+    moeda_id BIGINT NOT NULL,
+    FOREIGN KEY (moeda_id) REFERENCES moeda(id)
+);
+
+-- Tabela de Transações
+CREATE TABLE transacao (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(20) NOT NULL,
+    valor DECIMAL(19,4) NOT NULL,
+    data TIMESTAMP NOT NULL,
+    descricao VARCHAR(255),
+    produto_id BIGINT NOT NULL,
+    moeda_origem_id BIGINT NOT NULL,
+    moeda_destino_id BIGINT NOT NULL,
+    reino_id BIGINT NOT NULL,
+    FOREIGN KEY (produto_id) REFERENCES produto(id),
+    FOREIGN KEY (moeda_origem_id) REFERENCES moeda(id),
+    FOREIGN KEY (moeda_destino_id) REFERENCES moeda(id),
+    FOREIGN KEY (reino_id) REFERENCES reino(id)
+);
+
+-- Tabela de Fórmulas de Conversão
+CREATE TABLE formula_conversao (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    produto_id BIGINT NOT NULL,
+    reino_id BIGINT NOT NULL,
+    formula VARCHAR(255) NOT NULL,
+    FOREIGN KEY (produto_id) REFERENCES produto(id),
+    FOREIGN KEY (reino_id) REFERENCES reino(id)
+);
+
+-- Tabela de Taxas de Câmbio por Produto
+CREATE TABLE taxa_cambio_produto (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    produto_id BIGINT NOT NULL,
+    moeda_id BIGINT NOT NULL,
+    taxa DECIMAL(19,4) NOT NULL,
+    data_atualizacao TIMESTAMP NOT NULL,
+    FOREIGN KEY (produto_id) REFERENCES produto(id),
+    FOREIGN KEY (moeda_id) REFERENCES moeda(id)
+);
+
+-- Índices para melhor performance
+CREATE INDEX idx_moeda_codigo ON moeda(codigo);
+CREATE INDEX idx_produto_moeda ON produto(moeda_id);
+CREATE INDEX idx_transacao_produto ON transacao(produto_id);
+CREATE INDEX idx_transacao_moeda_origem ON transacao(moeda_origem_id);
+CREATE INDEX idx_transacao_moeda_destino ON transacao(moeda_destino_id);
+CREATE INDEX idx_transacao_reino ON transacao(reino_id);
+CREATE INDEX idx_formula_produto ON formula_conversao(produto_id);
+CREATE INDEX idx_formula_reino ON formula_conversao(reino_id);
+CREATE INDEX idx_taxa_produto ON taxa_cambio_produto(produto_id);
+CREATE INDEX idx_taxa_moeda ON taxa_cambio_produto(moeda_id);
+```
+
+### Diagrama ER
+
 ## Cache
 O sistema utiliza Caffeine Cache para melhorar a performance das consultas de taxas de câmbio:
 - Cache de taxas por 1 hora
