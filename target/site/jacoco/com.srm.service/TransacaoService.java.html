@@ -1,89 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransacaoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.service</a> &gt; <span class="el_source">TransacaoService.java</span></div><h1>TransacaoService.java</h1><pre class="source lang-java linenums">package com.srm.service;
 
-import com.srm.dto.TransacaoDTO;
-import com.srm.exception.TransacaoNaoEncontradaException;
-import com.srm.mapper.TransacaoMapper;
-import com.srm.entity.Produto;
-import com.srm.entity.Transacao;
-import com.srm.entity.TipoTransacao;
-import com.srm.repository.ProdutoRepository;
-import com.srm.repository.TransacaoRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-<span class="nc" id="L21">@Slf4j</span>
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.domain.Specification;
+
+import com.srm.dto.TransacaoDTO;
+import com.srm.entity.Moeda;
+import com.srm.entity.Produto;
+import com.srm.entity.Reino;
+import com.srm.entity.Transacao;
+import com.srm.exception.ProdutoNaoEncontradoException;
+import com.srm.exception.ReinoNaoEncontradoException;
+import com.srm.exception.TransacaoException;
+import com.srm.mapper.TransacaoMapper;
+import com.srm.repository.TransacaoRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+<span class="fc" id="L26">@Slf4j</span>
 @Service
-<span class="nc" id="L23">@RequiredArgsConstructor</span>
+<span class="fc" id="L28">@RequiredArgsConstructor</span>
 public class TransacaoService {
 
     private final TransacaoRepository transacaoRepository;
-    private final ProdutoRepository produtoRepository;
     private final TransacaoMapper transacaoMapper;
+    private final MoedaService moedaService;
+    private final ProdutoService produtoService;
+    private final ReinoService reinoService;
 
-    public List&lt;TransacaoDTO&gt; listarTodas() {
-<span class="nc" id="L31">        log.info(&quot;Listando todas as transações&quot;);</span>
+    @Transactional
+    public TransacaoDTO criarTransacao(TransacaoDTO transacaoDTO) {
+<span class="fc" id="L39">        log.info(&quot;Iniciando criação de nova transação: {}&quot;, transacaoDTO);</span>
         
-<span class="nc" id="L33">        List&lt;TransacaoDTO&gt; transacoes = transacaoRepository.findAll().stream()</span>
-<span class="nc" id="L34">                .map(transacaoMapper::toDTO)</span>
-<span class="nc" id="L35">                .collect(Collectors.toList());</span>
-        
-<span class="nc" id="L37">        log.info(&quot;Total de transações encontradas: {}&quot;, transacoes.size());</span>
-<span class="nc" id="L38">        return transacoes;</span>
+        try {
+<span class="fc" id="L42">            Transacao transacao = transacaoMapper.toEntity(transacaoDTO);</span>
+            
+            // Buscar moedas
+<span class="fc" id="L45">            Moeda moedaOrigem = moedaService.buscarEntidadePorCodigo(transacaoDTO.getMoedaOrigemCodigo());</span>
+<span class="fc" id="L46">            Moeda moedaDestino = moedaService.buscarEntidadePorCodigo(transacaoDTO.getMoedaDestinoCodigo());</span>
+            
+            // Buscar produto
+            Produto produto;
+            try {
+<span class="fc" id="L51">                produto = produtoService.buscarEntidadePorId(transacaoDTO.getProdutoId());</span>
+<span class="fc" id="L52">            } catch (ProdutoNaoEncontradoException e) {</span>
+<span class="fc" id="L53">                throw new TransacaoException(&quot;Produto com ID &quot; + transacaoDTO.getProdutoId() + &quot; não encontrado no banco de dados&quot;);</span>
+<span class="fc" id="L54">            }</span>
+            
+            // Buscar reino
+            Reino reino;
+            try {
+<span class="fc" id="L59">                reino = reinoService.buscarEntidadePorId(transacaoDTO.getReinoId());</span>
+<span class="fc" id="L60">            } catch (ReinoNaoEncontradoException e) {</span>
+<span class="fc" id="L61">                throw new TransacaoException(&quot;Reino com ID &quot; + transacaoDTO.getReinoId() + &quot; não encontrado no banco de dados&quot;);</span>
+<span class="fc" id="L62">            }</span>
+            
+            // Verificar estoque
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            if (produto.getQuantidadeEstoque() &lt; 1) {</span>
+<span class="fc" id="L66">                throw new TransacaoException(&quot;Estoque insuficiente para o produto '&quot; + produto.getNome() + &quot;' (ID: &quot; + produto.getId() + &quot;)&quot;);</span>
+            }
+            
+            // Atualizar estoque
+<span class="fc" id="L70">            produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - 1);</span>
+<span class="fc" id="L71">            produtoService.atualizar(produto.getId(), produtoService.toDTO(produto));</span>
+            
+            // Calcular valor convertido
+<span class="fc" id="L74">            BigDecimal valorOriginal = produto.getPreco();</span>
+<span class="fc" id="L75">            BigDecimal taxaCambio = moedaDestino.getTaxaCambio().divide(moedaOrigem.getTaxaCambio(), 2, RoundingMode.HALF_UP);</span>
+<span class="fc" id="L76">            BigDecimal valorConvertido = valorOriginal.multiply(taxaCambio);</span>
+            
+            // Configurar transação
+<span class="fc" id="L79">            transacao.setMoedaOrigem(moedaOrigem);</span>
+<span class="fc" id="L80">            transacao.setMoedaDestino(moedaDestino);</span>
+<span class="fc" id="L81">            transacao.setProduto(produto);</span>
+<span class="fc" id="L82">            transacao.setReino(reino);</span>
+<span class="fc" id="L83">            transacao.setValor(valorConvertido);</span>
+<span class="fc" id="L84">            transacao.setDataTransacao(LocalDateTime.now());</span>
+            
+<span class="fc" id="L86">            Transacao transacaoSalva = transacaoRepository.save(transacao);</span>
+<span class="fc" id="L87">            log.info(&quot;Transação criada com sucesso: {}&quot;, transacaoSalva);</span>
+<span class="fc" id="L88">            return transacaoMapper.toDTO(transacaoSalva);</span>
+            
+<span class="fc" id="L90">        } catch (TransacaoException e) {</span>
+<span class="fc" id="L91">            log.error(&quot;Erro de negócio ao criar transação: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L92">            throw e;</span>
+<span class="nc" id="L93">        } catch (Exception e) {</span>
+<span class="nc" id="L94">            log.error(&quot;Erro inesperado ao criar transação: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L95">            throw new TransacaoException(&quot;Ocorreu um erro inesperado ao criar a transação&quot;);</span>
+        }
     }
 
     public TransacaoDTO buscarPorId(Long id) {
-<span class="nc" id="L42">        log.info(&quot;Buscando transação por ID: {}&quot;, id);</span>
-        
-<span class="nc" id="L44">        return transacaoRepository.findById(id)</span>
-<span class="nc" id="L45">                .map(transacao -&gt; {</span>
-<span class="nc" id="L46">                    log.info(&quot;Transação encontrada: {}&quot;, transacao);</span>
-<span class="nc" id="L47">                    return transacaoMapper.toDTO(transacao);</span>
-                })
-<span class="nc" id="L49">                .orElseThrow(() -&gt; new TransacaoNaoEncontradaException(id));</span>
+<span class="fc" id="L100">        log.info(&quot;Buscando transação por ID: {}&quot;, id);</span>
+<span class="fc" id="L101">        return transacaoRepository.findById(id)</span>
+<span class="fc" id="L102">                .map(transacaoMapper::toDTO)</span>
+<span class="fc" id="L103">                .orElseThrow(() -&gt; new TransacaoException(&quot;Transação não encontrada com ID: &quot; + id));</span>
     }
 
-    @Transactional
-    public TransacaoDTO registrarTransacao(TransacaoDTO dto) {
-<span class="nc" id="L54">        Produto produto = produtoRepository.findById(dto.getProdutoId())</span>
-<span class="nc" id="L55">                .orElseThrow(() -&gt; new RuntimeException(&quot;Produto não encontrado&quot;));</span>
+    public List&lt;TransacaoDTO&gt; listarTodas() {
+<span class="fc" id="L107">        log.info(&quot;Listando todas as transações&quot;);</span>
+<span class="fc" id="L108">        return transacaoRepository.findAll().stream()</span>
+<span class="fc" id="L109">                .map(transacaoMapper::toDTO)</span>
+<span class="fc" id="L110">                .toList();</span>
+    }
 
-        // Validar e atualizar estoque
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (dto.getTipo().equals(&quot;SAIDA&quot;)) {</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (produto.getQuantidadeEstoque() &lt; dto.getQuantidade()) {</span>
-<span class="nc" id="L60">                throw new RuntimeException(&quot;Estoque insuficiente&quot;);</span>
-            }
-<span class="nc" id="L62">            produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - dto.getQuantidade());</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        } else if (dto.getTipo().equals(&quot;ENTRADA&quot;)) {</span>
-<span class="nc" id="L64">            produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() + dto.getQuantidade());</span>
-        } else {
-<span class="nc" id="L66">            throw new RuntimeException(&quot;Tipo de transação inválido&quot;);</span>
+    @Transactional(readOnly = true)
+    public List&lt;Transacao&gt; consultarHistoricoTransacoes(
+            Long produtoId,
+            Long reinoId,
+            Long moedaOrigemId,
+            Long moedaDestinoId,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim) {
+        
+<span class="nc" id="L122">        Specification&lt;Transacao&gt; spec = Specification.where(null);</span>
+        
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (produtoId != null) {</span>
+<span class="nc" id="L125">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L126">                cb.equal(root.get(&quot;produto&quot;).get(&quot;id&quot;), produtoId));</span>
         }
-
-        // Calcular valor total
-<span class="nc" id="L70">        BigDecimal valorTotalBigDecimal = produto.getPreco().multiply(BigDecimal.valueOf(dto.getQuantidade()));</span>
-<span class="nc" id="L71">        Double valorTotal = valorTotalBigDecimal.doubleValue();</span>
-
-        // Criar e salvar a transação
-<span class="nc" id="L74">        Transacao transacao = new Transacao();</span>
-<span class="nc" id="L75">        transacao.setProduto(produto);</span>
-<span class="nc" id="L76">        transacao.setQuantidade(dto.getQuantidade());</span>
-<span class="nc" id="L77">        transacao.setValorTotal(valorTotal);</span>
-<span class="nc" id="L78">        transacao.setDataTransacao(LocalDateTime.now());</span>
-<span class="nc" id="L79">        transacao.setTipo(TipoTransacao.valueOf(dto.getTipo()));</span>
-
-        // Salvar as alterações
-<span class="nc" id="L82">        produtoRepository.save(produto);</span>
-<span class="nc" id="L83">        transacao = transacaoRepository.save(transacao);</span>
-
-        // Converter para DTO e retornar
-<span class="nc" id="L86">        return transacaoMapper.toDTO(transacao);</span>
+        
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (reinoId != null) {</span>
+<span class="nc" id="L130">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L131">                cb.equal(root.get(&quot;reino&quot;).get(&quot;id&quot;), reinoId));</span>
+        }
+        
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (moedaOrigemId != null) {</span>
+<span class="nc" id="L135">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L136">                cb.equal(root.get(&quot;moedaOrigem&quot;).get(&quot;id&quot;), moedaOrigemId));</span>
+        }
+        
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (moedaDestinoId != null) {</span>
+<span class="nc" id="L140">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L141">                cb.equal(root.get(&quot;moedaDestino&quot;).get(&quot;id&quot;), moedaDestinoId));</span>
+        }
+        
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (dataInicio != null) {</span>
+<span class="nc" id="L145">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L146">                cb.greaterThanOrEqualTo(root.get(&quot;dataTransacao&quot;), dataInicio));</span>
+        }
+        
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (dataFim != null) {</span>
+<span class="nc" id="L150">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L151">                cb.lessThanOrEqualTo(root.get(&quot;dataTransacao&quot;), dataFim));</span>
+        }
+        
+<span class="nc" id="L154">        return transacaoRepository.findAll(spec);</span>
     }
 } 
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -19,18 +19,19 @@ public class Moeda {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "nome", nullable = false)
     private String nome;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "codigo", nullable = false, unique = true)
     private String codigo;
 
     @Column(name = "taxa_cambio", nullable = false)
     private BigDecimal taxaCambio;
 
-    @Column(name = "data_atualizacao")
+    @Column(name = "data_atualizacao", nullable = false)
     private LocalDateTime dataAtualizacao;
 
     @PrePersist

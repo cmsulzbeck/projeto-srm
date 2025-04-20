@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-<span class="pc bpc" id="L13" title="33 of 54 branches missed.">@Data</span>
+<span class="pc bpc" id="L13" title="38 of 62 branches missed.">@Data</span>
 <span class="pc" id="L14">@Builder</span>
 <span class="fc" id="L15">@NoArgsConstructor</span>
 <span class="fc" id="L16">@AllArgsConstructor</span>
@@ -34,5 +34,8 @@ public class ProdutoDTO {
     @NotNull(message = &quot;A quantidade em estoque é obrigatória&quot;)
     @Positive(message = &quot;A quantidade em estoque deve ser maior que zero&quot;)
 <span class="fc" id="L36">    private Integer quantidadeEstoque;</span>
+
+    @NotNull(message = &quot;O ID do reino é obrigatório&quot;)
+<span class="fc" id="L39">    private Long reinoId;</span>
 } 
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -7,33 +7,41 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = &quot;PRODUTOS&quot;)
-<span class="pc bpc" id="L13" title="32 of 54 branches missed.">@Data</span>
-<span class="pc" id="L14">@Builder</span>
-<span class="fc" id="L15">@NoArgsConstructor</span>
-<span class="fc" id="L16">@AllArgsConstructor</span>
+<span class="pc bpc" id="L14" title="42 of 70 branches missed.">@Data</span>
+<span class="pc" id="L15">@Builder</span>
+<span class="fc" id="L16">@NoArgsConstructor</span>
+<span class="fc" id="L17">@AllArgsConstructor</span>
 public class Produto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-<span class="fc" id="L21">    private Long id;</span>
+<span class="fc" id="L22">    private Long id;</span>
 
     @Column(nullable = false)
-<span class="fc" id="L24">    private String nome;</span>
+<span class="fc" id="L25">    private String nome;</span>
 
-    @Column
-<span class="fc" id="L27">    private String descricao;</span>
+    @Column(length = 1000)
+<span class="fc" id="L28">    private String descricao;</span>
 
-    @Column(nullable = false)
-<span class="fc" id="L30">    private BigDecimal preco;</span>
+    @Column(nullable = false, precision = 10, scale = 2)
+<span class="fc" id="L31">    private BigDecimal preco;</span>
 
     @Column(name = &quot;quantidade_estoque&quot;, nullable = false)
-<span class="fc" id="L33">    private Integer quantidadeEstoque;</span>
+<span class="fc" id="L34">    private Integer quantidadeEstoque;</span>
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = &quot;moeda_id&quot;, nullable = false)
-<span class="fc" id="L37">    private Moeda moeda;</span>
+<span class="fc" id="L38">    private Moeda moeda;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;reino_id&quot;, nullable = false)
+<span class="fc" id="L42">    private Reino reino;</span>
+
+    @OneToMany(mappedBy = &quot;produto&quot;, cascade = CascadeType.ALL, orphanRemoval = true)
+<span class="fc" id="L45">    private List&lt;Transacao&gt; transacoes;</span>
 } 
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

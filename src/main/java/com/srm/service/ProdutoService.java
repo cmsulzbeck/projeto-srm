@@ -6,12 +6,17 @@ import com.srm.entity.Produto;
 import com.srm.exception.ProdutoNaoEncontradoException;
 import com.srm.mapper.ProdutoMapper;
 import com.srm.repository.ProdutoRepository;
+import com.srm.repository.TaxaCambioProdutoRepository;
+import com.srm.repository.FormulasConversaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProdutoService {
@@ -19,6 +24,8 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
     private final MoedaService moedaService;
     private final ProdutoMapper produtoMapper;
+    private final TaxaCambioProdutoRepository taxaCambioProdutoRepository;
+    private final FormulasConversaoRepository formulasConversaoRepository;
 
     @Transactional
     public ProdutoDTO criar(ProdutoDTO produtoDTO) {
@@ -51,9 +58,15 @@ public class ProdutoService {
         return produtoMapper.toDTO(produtoAtualizado);
     }
 
-    public ProdutoDTO buscarPorId(Long id) {
+    public Optional<ProdutoDTO> buscarPorId(Long id) {
+        log.info("Buscando produto por ID: {}", id);
         return produtoRepository.findById(id)
-                .map(produtoMapper::toDTO)
+                .map(produtoMapper::toDTO);
+    }
+
+    public Produto buscarEntidadePorId(Long id) {
+        log.info("Buscando entidade produto por ID: {}", id);
+        return produtoRepository.findById(id)
                 .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
     }
 
@@ -68,6 +81,18 @@ public class ProdutoService {
         if (!produtoRepository.existsById(id)) {
             throw new ProdutoNaoEncontradoException(id);
         }
+        
+        // Primeiro, deletar todas as taxas de câmbio associadas ao produto
+        taxaCambioProdutoRepository.deleteByProdutoId(id);
+        
+        // Depois, deletar todas as fórmulas de conversão associadas ao produto
+        formulasConversaoRepository.deleteByProdutoId(id);
+        
+        // Agora podemos deletar o produto com segurança
         produtoRepository.deleteById(id);
+    }
+
+    public ProdutoDTO toDTO(Produto produto) {
+        return produtoMapper.toDTO(produto);
     }
 } 

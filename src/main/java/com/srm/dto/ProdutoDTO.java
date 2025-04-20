@@ -34,4 +34,7 @@ public class ProdutoDTO {
     @NotNull(message = "A quantidade em estoque é obrigatória")
     @Positive(message = "A quantidade em estoque deve ser maior que zero")
     private Integer quantidadeEstoque;
+
+    @NotNull(message = "O ID do reino é obrigatório")
+    private Long reinoId;
 } 

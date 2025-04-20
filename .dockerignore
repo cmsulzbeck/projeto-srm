@@ -1,0 +1,49 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+
+# Build output
+target/
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+logs/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Docker
+Dockerfile
+.dockerignore
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Test files
+src/test/
+
+# Documentation
+*.md
+docs/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Data directory
+data/ 

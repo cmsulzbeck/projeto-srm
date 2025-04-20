@@ -3,53 +3,130 @@
 import com.srm.dto.ProdutoDTO;
 import com.srm.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
+<span class="fc" id="L20">@Slf4j</span>
 @RestController
 @RequestMapping(&quot;/api/produtos&quot;)
-<span class="fc" id="L17">@RequiredArgsConstructor</span>
+<span class="fc" id="L23">@RequiredArgsConstructor</span>
 @Tag(name = &quot;Produtos&quot;, description = &quot;API para gerenciamento de produtos&quot;)
 public class ProdutoController {
 
     private final ProdutoService produtoService;
 
+    @Operation(summary = &quot;Criar um novo produto&quot;, description = &quot;Cria um novo produto com os dados fornecidos&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Produto criado com sucesso&quot;,
+            content = @Content(schema = @Schema(implementation = ProdutoDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos fornecidos&quot;)
+    })
     @PostMapping
-    @Operation(summary = &quot;Criar um novo produto&quot;)
-    public ResponseEntity&lt;ProdutoDTO&gt; criarProduto(@Valid @RequestBody ProdutoDTO produtoDTO) {
-<span class="fc" id="L26">        return ResponseEntity.status(HttpStatus.CREATED)</span>
-<span class="fc" id="L27">                .body(produtoService.criar(produtoDTO));</span>
+    public ResponseEntity&lt;ProdutoDTO&gt; criarProduto(@RequestBody ProdutoDTO produtoDTO) {
+<span class="fc" id="L37">        log.info(&quot;Recebendo requisição para criar produto: {}&quot;, produtoDTO);</span>
+        try {
+<span class="fc" id="L39">            ProdutoDTO produtoCriado = produtoService.criar(produtoDTO);</span>
+<span class="fc" id="L40">            log.info(&quot;Produto criado com sucesso: {}&quot;, produtoCriado);</span>
+<span class="fc" id="L41">            return ResponseEntity.created(URI.create(&quot;/api/produtos/&quot; + produtoCriado.getId())).body(produtoCriado);</span>
+<span class="nc" id="L42">        } catch (Exception e) {</span>
+<span class="nc" id="L43">            log.error(&quot;Erro ao criar produto&quot;, e);</span>
+<span class="nc" id="L44">            throw e;</span>
+        }
     }
 
+    @Operation(summary = &quot;Atualizar um produto&quot;, description = &quot;Atualiza os dados de um produto existente&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Produto atualizado com sucesso&quot;,
+            content = @Content(schema = @Schema(implementation = ProdutoDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Produto não encontrado&quot;)
+    })
     @PutMapping(&quot;/{id}&quot;)
-    @Operation(summary = &quot;Atualizar um produto existente&quot;)
-    public ResponseEntity&lt;ProdutoDTO&gt; atualizarProduto(@PathVariable Long id, @Valid @RequestBody ProdutoDTO produtoDTO) {
-<span class="fc" id="L33">        return ResponseEntity.ok(produtoService.atualizar(id, produtoDTO));</span>
+    public ResponseEntity&lt;ProdutoDTO&gt; atualizarProduto(
+            @Parameter(description = &quot;ID do produto&quot;, example = &quot;1&quot;)
+            @PathVariable Long id,
+            @RequestBody ProdutoDTO produtoDTO) {
+<span class="fc" id="L59">        log.info(&quot;Recebendo requisição para atualizar produto com id {}: {}&quot;, id, produtoDTO);</span>
+        try {
+<span class="fc" id="L61">            ProdutoDTO produtoAtualizado = produtoService.atualizar(id, produtoDTO);</span>
+<span class="fc" id="L62">            log.info(&quot;Produto atualizado com sucesso: {}&quot;, produtoAtualizado);</span>
+<span class="fc" id="L63">            return ResponseEntity.ok(produtoAtualizado);</span>
+<span class="nc" id="L64">        } catch (Exception e) {</span>
+<span class="nc" id="L65">            log.error(&quot;Erro ao atualizar produto&quot;, e);</span>
+<span class="nc" id="L66">            throw e;</span>
+        }
     }
 
+    @Operation(summary = &quot;Buscar produto por ID&quot;, description = &quot;Retorna os dados de um produto específico&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Produto encontrado&quot;,
+            content = @Content(schema = @Schema(implementation = ProdutoDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Produto não encontrado&quot;)
+    })
     @GetMapping(&quot;/{id}&quot;)
-    @Operation(summary = &quot;Buscar um produto por ID&quot;)
-    public ResponseEntity&lt;ProdutoDTO&gt; buscarPorId(@PathVariable Long id) {
-<span class="fc" id="L39">        return ResponseEntity.ok(produtoService.buscarPorId(id));</span>
+    public ResponseEntity&lt;ProdutoDTO&gt; buscarPorId(
+            @Parameter(description = &quot;ID do produto&quot;, example = &quot;1&quot;)
+            @PathVariable Long id) {
+<span class="fc" id="L80">        log.info(&quot;Recebendo requisição para buscar produto com id: {}&quot;, id);</span>
+        try {
+<span class="fc" id="L82">            return produtoService.buscarPorId(id)</span>
+<span class="fc" id="L83">                    .map(produto -&gt; {</span>
+<span class="fc" id="L84">                        log.info(&quot;Produto encontrado: {}&quot;, produto);</span>
+<span class="fc" id="L85">                        return ResponseEntity.ok(produto);</span>
+                    })
+<span class="fc" id="L87">                    .orElse(ResponseEntity.notFound().build());</span>
+<span class="nc" id="L88">        } catch (Exception e) {</span>
+<span class="nc" id="L89">            log.error(&quot;Erro ao buscar produto&quot;, e);</span>
+<span class="nc" id="L90">            throw e;</span>
+        }
     }
 
+    @Operation(summary = &quot;Listar todos os produtos&quot;, description = &quot;Retorna uma lista com todos os produtos cadastrados&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Lista de produtos retornada com sucesso&quot;,
+            content = @Content(schema = @Schema(implementation = ProdutoDTO.class)))
+    })
     @GetMapping
-    @Operation(summary = &quot;Listar todos os produtos&quot;)
     public ResponseEntity&lt;List&lt;ProdutoDTO&gt;&gt; listarTodos() {
-<span class="fc" id="L45">        return ResponseEntity.ok(produtoService.listarTodos());</span>
+<span class="fc" id="L101">        log.info(&quot;Recebendo requisição para listar todos os produtos&quot;);</span>
+        try {
+<span class="fc" id="L103">            List&lt;ProdutoDTO&gt; produtos = produtoService.listarTodos();</span>
+<span class="fc" id="L104">            log.info(&quot;Total de produtos encontrados: {}&quot;, produtos.size());</span>
+<span class="fc" id="L105">            return ResponseEntity.ok(produtos);</span>
+<span class="nc" id="L106">        } catch (Exception e) {</span>
+<span class="nc" id="L107">            log.error(&quot;Erro ao listar produtos&quot;, e);</span>
+<span class="nc" id="L108">            throw e;</span>
+        }
     }
 
+    @Operation(summary = &quot;Deletar um produto&quot;, description = &quot;Remove um produto do sistema&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Produto deletado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Produto não encontrado&quot;)
+    })
     @DeleteMapping(&quot;/{id}&quot;)
-    @Operation(summary = &quot;Deletar um produto&quot;)
-    public ResponseEntity&lt;Void&gt; deletarProduto(@PathVariable Long id) {
-<span class="fc" id="L51">        produtoService.deletar(id);</span>
-<span class="fc" id="L52">        return ResponseEntity.noContent().build();</span>
+    public ResponseEntity&lt;Void&gt; deletarProduto(
+            @Parameter(description = &quot;ID do produto&quot;, example = &quot;1&quot;)
+            @PathVariable Long id) {
+<span class="fc" id="L121">        log.info(&quot;Recebendo requisição para deletar produto com id: {}&quot;, id);</span>
+        try {
+<span class="fc" id="L123">            produtoService.deletar(id);</span>
+<span class="fc" id="L124">            log.info(&quot;Produto deletado com sucesso&quot;);</span>
+<span class="fc" id="L125">            return ResponseEntity.noContent().build();</span>
+<span class="nc" id="L126">        } catch (Exception e) {</span>
+<span class="nc" id="L127">            log.error(&quot;Erro ao deletar produto&quot;, e);</span>
+<span class="nc" id="L128">            throw e;</span>
+        }
     }
 } 
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

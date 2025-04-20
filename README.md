@@ -1,127 +1,93 @@
-# Sistema de Conversão de Moedas - Reino SRM
+# Sistema de Reinos Medievais (SRM)
 
-Este é um sistema de conversão de moedas desenvolvido para o reino de SRM, permitindo a conversão entre Ouro Real e Tibar, considerando diferentes produtos e suas taxas específicas.
+## Descrição
+Sistema para gerenciamento de transações comerciais entre reinos medievais, com suporte a múltiplas moedas e produtos.
 
-## Tecnologias Utilizadas
+## Funcionalidades
 
-- Java 17
-- Spring Boot 3.2.3
+### Conversão de Moedas
+- Conversão entre Ouro Real (OR) e Tibar (TB)
+- Taxas de câmbio específicas por produto
+- Cache de taxas de câmbio para melhor performance
+- Validações robustas para taxas de câmbio
+
+### Produtos
+- Cadastro e gerenciamento de produtos
+- Taxas de conversão específicas por produto
+- Fórmulas de conversão personalizadas por reino
+
+### Transações
+- Registro de todas as transações comerciais
+- Histórico completo com filtros avançados
+- Consulta por produto, reino, moeda e período
+- Persistência resiliente com transações atômicas
+
+### API RESTful
+- Documentação completa com Swagger/OpenAPI
+- Endpoints para:
+  - Consulta de taxas de câmbio
+  - Conversão de moedas
+  - Conversão de produtos
+  - Registro de transações
+  - Consulta de histórico
+
+## Tecnologias
+- Spring Boot
 - Spring Data JPA
 - H2 Database
-- OpenAPI (Swagger)
-- Maven
-- MapStruct
-- Lombok
+- Swagger/OpenAPI
+- Caffeine Cache
 
-## Padrões de Projeto Utilizados
-
-- Factory Pattern: Para criação consistente de objetos
-- Strategy Pattern: Para diferentes estratégias de conversão
-- Builder Pattern: Para construção de objetos complexos
-- Service Locator Pattern: Para gerenciamento de estratégias
-- Mapper Pattern: Para conversão entre DTOs e entidades
-
-## Configuração do Ambiente
-
+## Configuração
 1. Clone o repositório
-2. Certifique-se de ter o Java 17 instalado
-3. Execute o projeto usando Maven:
-   ```bash
-   mvn spring-boot:run
-   ```
+2. Execute `mvn clean install`
+3. Execute `mvn spring-boot:run`
+4. Acesse a documentação da API em `http://localhost:8080/swagger-ui.html`
 
-## Acesso à API
+## Banco de Dados
+O sistema utiliza H2 Database em memória com inicialização automática de dados.
+- Console H2: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:testdb`
+- Usuário: `sa`
+- Senha: `password`
 
-A API estará disponível em: `http://localhost:8080`
+## Cache
+O sistema utiliza Caffeine Cache para melhorar a performance das consultas de taxas de câmbio:
+- Cache de taxas por 1 hora
+- Limite de 100 entradas
+- Invalidação automática ao atualizar taxas
 
-### Documentação Swagger
+## Exemplos de Uso
 
-A documentação da API pode ser acessada em:
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/api-docs`
-
-## Endpoints Principais
-
-### Moedas
-
-- `POST /api/moedas` - Criar uma nova moeda
-- `PUT /api/moedas/{codigo}/taxa` - Atualizar taxa de câmbio
-- `GET /api/moedas/{codigo}` - Buscar moeda por código
-- `GET /api/moedas` - Listar todas as moedas
-
-### Conversões
-
-- `POST /api/conversoes` - Realizar conversão de moeda
-
-## Script SQL para Criação das Tabelas
-
-```sql
-CREATE TABLE moeda (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    codigo VARCHAR(10) NOT NULL UNIQUE,
-    taxa_cambio DECIMAL(10,4) NOT NULL,
-    data_atualizacao TIMESTAMP NOT NULL
-);
-
-CREATE TABLE produto (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    descricao VARCHAR(255) NOT NULL,
-    preco_base DECIMAL(10,2) NOT NULL,
-    fator_conversao DECIMAL(10,4) NOT NULL,
-    tipo_conversao VARCHAR(50) NOT NULL,
-    moeda_id BIGINT NOT NULL,
-    FOREIGN KEY (moeda_id) REFERENCES moeda(id)
-);
-
-CREATE TABLE transacao (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    produto_id BIGINT NOT NULL,
-    valor_original DECIMAL(10,2) NOT NULL,
-    valor_convertido DECIMAL(10,2) NOT NULL,
-    moeda_origem_id BIGINT NOT NULL,
-    moeda_destino_id BIGINT NOT NULL,
-    taxa_cambio_aplicada DECIMAL(10,4) NOT NULL,
-    data_transacao TIMESTAMP NOT NULL,
-    FOREIGN KEY (produto_id) REFERENCES produto(id),
-    FOREIGN KEY (moeda_origem_id) REFERENCES moeda(id),
-    FOREIGN KEY (moeda_destino_id) REFERENCES moeda(id)
-);
+### Consultar Taxa de Câmbio
+```bash
+curl -X GET "http://localhost:8080/api/conversoes/moedas?moedaOrigemId=1&moedaDestinoId=2&valor=100.00"
 ```
 
-## Exemplo de Uso
-
-1. Criar moedas:
-```json
-POST /api/moedas
-{
-    "nome": "Ouro Real",
-    "codigo": "OR",
-    "taxaCambio": 1.0000
-}
+### Converter Produto
+```bash
+curl -X GET "http://localhost:8080/api/conversoes/produtos?produtoId=1&moedaOrigemId=1&moedaDestinoId=2&valor=100.00"
 ```
 
-2. Atualizar taxa de câmbio:
-```
-PUT /api/moedas/OR/taxa?novaTaxa=2.5000
-```
-
-3. Realizar conversão:
-```json
-POST /api/conversoes
-{
-    "moedaOrigem": "OR",
-    "moedaDestino": "TB",
-    "valorOriginal": 100.00,
-    "produto": "Peles"
-}
+### Atualizar Taxa de Câmbio
+```bash
+curl -X POST "http://localhost:8080/api/conversoes/taxas?produtoId=1&moedaOrigemId=1&moedaDestinoId=2&taxa=2.5"
 ```
 
-## Considerações
+### Consultar Histórico de Transações
+```bash
+curl -X GET "http://localhost:8080/api/conversoes/transacoes/historico?produtoId=1&reinoId=1&dataInicio=2024-01-01T00:00:00&dataFim=2024-12-31T23:59:59"
+```
 
-- A taxa de câmbio entre Ouro Real e Tibar é de 1:2.5 por padrão
-- Cada produto pode ter um fator de conversão específico
-- Todas as transações são registradas para histórico
-- O sistema utiliza transações para garantir a consistência dos dados
-- Diferentes estratégias de conversão podem ser aplicadas baseadas no tipo do produto 
+### Criar Nova Transação
+```bash
+curl -X POST "http://localhost:8080/api/conversoes/transacoes" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "produtoId": 1,
+    "reinoId": 1,
+    "moedaOrigemId": 1,
+    "moedaDestinoId": 2,
+    "valor": 100.00
+  }'
+``` 

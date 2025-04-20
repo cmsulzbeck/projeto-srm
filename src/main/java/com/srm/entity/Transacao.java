@@ -1,14 +1,34 @@
 package com.srm.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
+import com.srm.enums.TipoTransacao;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.PrePersist;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
 @Table(name = "TRANSACOES")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transacao {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,16 +37,33 @@ public class Transacao {
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
-    @Column(nullable = false)
-    private Integer quantidade;
+    @ManyToOne
+    @JoinColumn(name = "reino_id", nullable = false)
+    private Reino reino;
+
+    @ManyToOne
+    @JoinColumn(name = "moeda_origem_id", nullable = false)
+    private Moeda moedaOrigem;
+
+    @ManyToOne
+    @JoinColumn(name = "moeda_destino_id", nullable = false)
+    private Moeda moedaDestino;
 
     @Column(nullable = false)
-    private Double valorTotal;
+    private BigDecimal valor;
 
-    @Column(name = "data_transacao", nullable = false)
+    @Column(name = "data", nullable = false)
     private LocalDateTime dataTransacao;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TipoTransacao tipo;
+    @Column(name = "tipo", nullable = false)
+    private TipoTransacao tipoTransacao;
+
+    @Column(length = 1000)
+    private String descricao;
+
+    @PrePersist
+    public void prePersist() {
+        this.dataTransacao = LocalDateTime.now();
+    }
 } 

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,7 +81,7 @@ class ProdutoControllerTest {
 
     @Test
     void buscarPorId_QuandoProdutoExiste_DeveRetornarProdutoDTO() {
-        when(produtoService.buscarPorId(1L)).thenReturn(produtoDTO);
+        when(produtoService.buscarPorId(1L)).thenReturn(Optional.of(produtoDTO));
 
         ResponseEntity<ProdutoDTO> response = produtoController.buscarPorId(1L);
 

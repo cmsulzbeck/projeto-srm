@@ -1,40 +1,215 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConversaoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.service</a> &gt; <span class="el_source">ConversaoService.java</span></div><h1>ConversaoService.java</h1><pre class="source lang-java linenums">package com.srm.service;
 
-import com.srm.entity.Moeda;
-import com.srm.repository.MoedaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.srm.dto.TransacaoDTO;
+import com.srm.entity.*;
+import com.srm.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-<span class="nc" id="L13">public class ConversaoService {</span>
+<span class="nc" id="L19">@RequiredArgsConstructor</span>
+public class ConversaoService {
 
-    @Autowired
-    private MoedaRepository moedaRepository;
+    private final TaxaCambioProdutoRepository taxaCambioProdutoRepository;
+    private final ProdutoRepository produtoRepository;
+    private final MoedaRepository moedaRepository;
+    private final ReinoRepository reinoRepository;
+    private final TransacaoRepository transacaoRepository;
 
-    public BigDecimal converter(String moedaOrigem, String moedaDestino, BigDecimal valor) {
-<span class="nc" id="L19">        Moeda origem = moedaRepository.findByCodigo(moedaOrigem);</span>
-<span class="nc bnc" id="L20" title="All 2 branches missed.">        if (origem == null) {</span>
-<span class="nc" id="L21">            throw new IllegalArgumentException(&quot;Moeda de origem não encontrada: &quot; + moedaOrigem);</span>
-        }
+    @Transactional
+    public BigDecimal converterMoedas(Long moedaOrigemId, Long moedaDestinoId, BigDecimal valor) {
+<span class="nc" id="L30">        Moeda moedaOrigem = moedaRepository.findById(moedaOrigemId)</span>
+<span class="nc" id="L31">                .orElseThrow(() -&gt; new RuntimeException(&quot;Moeda origem não encontrada&quot;));</span>
+<span class="nc" id="L32">        Moeda moedaDestino = moedaRepository.findById(moedaDestinoId)</span>
+<span class="nc" id="L33">                .orElseThrow(() -&gt; new RuntimeException(&quot;Moeda destino não encontrada&quot;));</span>
         
-<span class="nc" id="L24">        Moeda destino = moedaRepository.findByCodigo(moedaDestino);</span>
-<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (destino == null) {</span>
-<span class="nc" id="L26">            throw new IllegalArgumentException(&quot;Moeda de destino não encontrada: &quot; + moedaDestino);</span>
-        }
-
-        // Primeiro converte para dólar
-<span class="nc" id="L30">        BigDecimal valorEmDolar = valor.divide(origem.getTaxaCambio(), 6, RoundingMode.HALF_UP);</span>
-        
-        // Depois converte para a moeda de destino
-<span class="nc" id="L33">        return valorEmDolar.multiply(destino.getTaxaCambio()).setScale(2, RoundingMode.HALF_UP);</span>
+        // Convertendo para a moeda base (OR - Ouro Real) e depois para a moeda destino
+<span class="nc" id="L36">        BigDecimal valorEmOuro = valor.divide(moedaOrigem.getTaxaCambio(), 10, RoundingMode.HALF_UP);</span>
+<span class="nc" id="L37">        return valorEmOuro.multiply(moedaDestino.getTaxaCambio());</span>
     }
 
-    public List&lt;Moeda&gt; listarMoedas() {
-<span class="nc" id="L37">        return moedaRepository.findAll();</span>
+    @Transactional
+    public BigDecimal converterProduto(Long produtoId, Long moedaOrigemId, Long moedaDestinoId, BigDecimal valor) {
+<span class="nc" id="L42">        TaxaCambioProduto taxa = taxaCambioProdutoRepository</span>
+<span class="nc" id="L43">                .findByProdutoIdAndMoedaOrigemIdAndMoedaDestinoId(produtoId, moedaOrigemId, moedaDestinoId)</span>
+<span class="nc" id="L44">                .orElseThrow(() -&gt; new RuntimeException(&quot;Taxa de câmbio não encontrada para o produto&quot;));</span>
+        
+<span class="nc" id="L46">        return valor.multiply(taxa.getTaxa());</span>
+    }
+
+    @Cacheable(value = &quot;taxasCambio&quot;, key = &quot;#produtoId + '-' + #moedaOrigemId + '-' + #moedaDestinoId&quot;)
+    public BigDecimal getTaxaCambioProduto(Long produtoId, Long moedaOrigemId, Long moedaDestinoId) {
+<span class="nc" id="L51">        return taxaCambioProdutoRepository</span>
+<span class="nc" id="L52">            .findByProdutoIdAndMoedaOrigemIdAndMoedaDestinoId(produtoId, moedaOrigemId, moedaDestinoId)</span>
+<span class="nc" id="L53">            .map(TaxaCambioProduto::getTaxa)</span>
+<span class="nc" id="L54">            .orElseThrow(() -&gt; new RuntimeException(&quot;Taxa de câmbio não encontrada&quot;));</span>
+    }
+
+    @Transactional
+    @CacheEvict(value = &quot;taxasCambio&quot;, key = &quot;#produtoId + '-' + #moedaOrigemId + '-' + #moedaDestinoId&quot;)
+    public TaxaCambioProduto atualizarTaxa(Long produtoId, Long moedaOrigemId, Long moedaDestinoId, BigDecimal taxa) {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (taxa == null) {</span>
+<span class="nc" id="L61">            throw new IllegalArgumentException(&quot;A taxa de câmbio não pode ser nula&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (taxa.compareTo(BigDecimal.ZERO) &lt;= 0) {</span>
+<span class="nc" id="L65">            throw new IllegalArgumentException(&quot;A taxa de câmbio deve ser maior que zero&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (taxa.compareTo(new BigDecimal(&quot;1000&quot;)) &gt; 0) {</span>
+<span class="nc" id="L69">            throw new IllegalArgumentException(&quot;A taxa de câmbio não pode ser maior que 1000&quot;);</span>
+        }
+        
+<span class="nc" id="L72">        Produto produto = produtoRepository.findById(produtoId)</span>
+<span class="nc" id="L73">            .orElseThrow(() -&gt; new RuntimeException(&quot;Produto não encontrado&quot;));</span>
+            
+<span class="nc" id="L75">        Moeda moedaOrigem = moedaRepository.findById(moedaOrigemId)</span>
+<span class="nc" id="L76">            .orElseThrow(() -&gt; new RuntimeException(&quot;Moeda de origem não encontrada&quot;));</span>
+            
+<span class="nc" id="L78">        Moeda moedaDestino = moedaRepository.findById(moedaDestinoId)</span>
+<span class="nc" id="L79">            .orElseThrow(() -&gt; new RuntimeException(&quot;Moeda de destino não encontrada&quot;));</span>
+            
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (moedaOrigem.equals(moedaDestino)) {</span>
+<span class="nc" id="L82">            throw new IllegalArgumentException(&quot;As moedas de origem e destino devem ser diferentes&quot;);</span>
+        }
+        
+<span class="nc" id="L85">        TaxaCambioProduto taxaCambio = taxaCambioProdutoRepository</span>
+<span class="nc" id="L86">            .findByProdutoIdAndMoedaOrigemIdAndMoedaDestinoId(produtoId, moedaOrigemId, moedaDestinoId)</span>
+<span class="nc" id="L87">            .orElse(new TaxaCambioProduto());</span>
+            
+<span class="nc" id="L89">        taxaCambio.setProduto(produto);</span>
+<span class="nc" id="L90">        taxaCambio.setMoedaOrigem(moedaOrigem);</span>
+<span class="nc" id="L91">        taxaCambio.setMoedaDestino(moedaDestino);</span>
+<span class="nc" id="L92">        taxaCambio.setTaxa(taxa);</span>
+        
+<span class="nc" id="L94">        return taxaCambioProdutoRepository.save(taxaCambio);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;TaxaCambioProduto&gt; consultarHistoricoTaxas(
+            Long produtoId,
+            Long moedaOrigemId,
+            Long moedaDestinoId,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim) {
+        
+<span class="nc" id="L105">        Specification&lt;TaxaCambioProduto&gt; spec = Specification.where(null);</span>
+        
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (produtoId != null) {</span>
+<span class="nc" id="L108">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L109">                cb.equal(root.get(&quot;produto&quot;).get(&quot;id&quot;), produtoId));</span>
+        }
+        
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (moedaOrigemId != null) {</span>
+<span class="nc" id="L113">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L114">                cb.equal(root.get(&quot;moedaOrigem&quot;).get(&quot;id&quot;), moedaOrigemId));</span>
+        }
+        
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (moedaDestinoId != null) {</span>
+<span class="nc" id="L118">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L119">                cb.equal(root.get(&quot;moedaDestino&quot;).get(&quot;id&quot;), moedaDestinoId));</span>
+        }
+        
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (dataInicio != null) {</span>
+<span class="nc" id="L123">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L124">                cb.greaterThanOrEqualTo(root.get(&quot;dataAtualizacao&quot;), dataInicio));</span>
+        }
+        
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (dataFim != null) {</span>
+<span class="nc" id="L128">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L129">                cb.lessThanOrEqualTo(root.get(&quot;dataAtualizacao&quot;), dataFim));</span>
+        }
+        
+<span class="nc" id="L132">        return taxaCambioProdutoRepository.findAll(spec);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;Transacao&gt; consultarHistoricoTransacoes(
+            Long produtoId,
+            Long reinoId,
+            Long moedaOrigemId,
+            Long moedaDestinoId,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim) {
+        
+<span class="nc" id="L144">        Specification&lt;Transacao&gt; spec = Specification.where(null);</span>
+        
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (produtoId != null) {</span>
+<span class="nc" id="L147">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L148">                cb.equal(root.get(&quot;produto&quot;).get(&quot;id&quot;), produtoId));</span>
+        }
+        
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (reinoId != null) {</span>
+<span class="nc" id="L152">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L153">                cb.equal(root.get(&quot;reino&quot;).get(&quot;id&quot;), reinoId));</span>
+        }
+        
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (moedaOrigemId != null) {</span>
+<span class="nc" id="L157">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L158">                cb.equal(root.get(&quot;moedaOrigem&quot;).get(&quot;id&quot;), moedaOrigemId));</span>
+        }
+        
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (moedaDestinoId != null) {</span>
+<span class="nc" id="L162">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L163">                cb.equal(root.get(&quot;moedaDestino&quot;).get(&quot;id&quot;), moedaDestinoId));</span>
+        }
+        
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (dataInicio != null) {</span>
+<span class="nc" id="L167">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L168">                cb.greaterThanOrEqualTo(root.get(&quot;dataTransacao&quot;), dataInicio));</span>
+        }
+        
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (dataFim != null) {</span>
+<span class="nc" id="L172">            spec = spec.and((root, query, cb) -&gt; </span>
+<span class="nc" id="L173">                cb.lessThanOrEqualTo(root.get(&quot;dataTransacao&quot;), dataFim));</span>
+        }
+        
+<span class="nc" id="L176">        return transacaoRepository.findAll(spec);</span>
+    }
+
+    @Transactional
+    public Transacao criarTransacao(TransacaoDTO transacaoDTO) {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (transacaoDTO == null) {</span>
+<span class="nc" id="L182">            throw new IllegalArgumentException(&quot;A transação não pode ser nula&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L185" title="All 4 branches missed.">        if (transacaoDTO.getValor() == null || transacaoDTO.getValor().compareTo(BigDecimal.ZERO) &lt;= 0) {</span>
+<span class="nc" id="L186">            throw new IllegalArgumentException(&quot;O valor da transação deve ser maior que zero&quot;);</span>
+        }
+        
+<span class="nc" id="L189">        Produto produto = produtoRepository.findById(transacaoDTO.getProdutoId())</span>
+<span class="nc" id="L190">            .orElseThrow(() -&gt; new RuntimeException(&quot;Produto não encontrado&quot;));</span>
+            
+<span class="nc" id="L192">        Reino reino = reinoRepository.findById(transacaoDTO.getReinoId())</span>
+<span class="nc" id="L193">            .orElseThrow(() -&gt; new RuntimeException(&quot;Reino não encontrado&quot;));</span>
+            
+<span class="nc" id="L195">        Moeda moedaOrigem = moedaRepository.findById(transacaoDTO.getMoedaOrigemId())</span>
+<span class="nc" id="L196">            .orElseThrow(() -&gt; new RuntimeException(&quot;Moeda de origem não encontrada&quot;));</span>
+            
+<span class="nc" id="L198">        Moeda moedaDestino = moedaRepository.findById(transacaoDTO.getMoedaDestinoId())</span>
+<span class="nc" id="L199">            .orElseThrow(() -&gt; new RuntimeException(&quot;Moeda de destino não encontrada&quot;));</span>
+            
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (moedaOrigem.equals(moedaDestino)) {</span>
+<span class="nc" id="L202">            throw new IllegalArgumentException(&quot;As moedas de origem e destino devem ser diferentes&quot;);</span>
+        }
+        
+<span class="nc" id="L205">        Transacao transacao = new Transacao();</span>
+<span class="nc" id="L206">        transacao.setProduto(produto);</span>
+<span class="nc" id="L207">        transacao.setReino(reino);</span>
+<span class="nc" id="L208">        transacao.setMoedaOrigem(moedaOrigem);</span>
+<span class="nc" id="L209">        transacao.setMoedaDestino(moedaDestino);</span>
+<span class="nc" id="L210">        transacao.setValor(transacaoDTO.getValor());</span>
+        
+<span class="nc" id="L212">        return transacaoRepository.save(transacao);</span>
     }
 } 
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

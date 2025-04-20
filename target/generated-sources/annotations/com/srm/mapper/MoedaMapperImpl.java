@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-18T03:31:04-0300",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
+    date = "2025-04-20T02:13:23-0300",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.z20250331-1358, environment: Java 21.0.6 (Eclipse Adoptium)"
 )
 @Component
 public class MoedaMapperImpl implements MoedaMapper {
@@ -21,11 +21,11 @@ public class MoedaMapperImpl implements MoedaMapper {
 
         MoedaDTO moedaDTO = new MoedaDTO();
 
+        moedaDTO.setCodigo( moeda.getCodigo() );
+        moedaDTO.setDataAtualizacao( moeda.getDataAtualizacao() );
         moedaDTO.setId( moeda.getId() );
         moedaDTO.setNome( moeda.getNome() );
-        moedaDTO.setCodigo( moeda.getCodigo() );
         moedaDTO.setTaxaCambio( moeda.getTaxaCambio() );
-        moedaDTO.setDataAtualizacao( moeda.getDataAtualizacao() );
 
         return moedaDTO;
     }
@@ -38,11 +38,11 @@ public class MoedaMapperImpl implements MoedaMapper {
 
         Moeda.MoedaBuilder moeda = Moeda.builder();
 
+        moeda.codigo( dto.getCodigo() );
+        moeda.dataAtualizacao( dto.getDataAtualizacao() );
         moeda.id( dto.getId() );
         moeda.nome( dto.getNome() );
-        moeda.codigo( dto.getCodigo() );
         moeda.taxaCambio( dto.getTaxaCambio() );
-        moeda.dataAtualizacao( dto.getDataAtualizacao() );
 
         return moeda.build();
     }

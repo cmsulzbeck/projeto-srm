@@ -2,43 +2,42 @@
 
 import com.srm.entity.Produto;
 import com.srm.entity.Transacao;
-import com.srm.entity.TipoTransacao;
+import com.srm.enums.TipoTransacao;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class TransacaoBuilder {
     private Transacao transacao;
 
-<span class="nc" id="L11">    public TransacaoBuilder() {</span>
-<span class="nc" id="L12">        this.transacao = new Transacao();</span>
-<span class="nc" id="L13">    }</span>
+<span class="nc" id="L12">    public TransacaoBuilder() {</span>
+<span class="nc" id="L13">        this.transacao = new Transacao();</span>
+<span class="nc" id="L14">    }</span>
 
     public TransacaoBuilder comProduto(Produto produto) {
-<span class="nc" id="L16">        this.transacao.setProduto(produto);</span>
-<span class="nc" id="L17">        return this;</span>
+<span class="nc" id="L17">        this.transacao.setProduto(produto);</span>
+<span class="nc" id="L18">        return this;</span>
     }
 
-    public TransacaoBuilder comQuantidade(Integer quantidade) {
-<span class="nc" id="L21">        this.transacao.setQuantidade(quantidade);</span>
-<span class="nc" id="L22">        return this;</span>
+    public TransacaoBuilder comValor(BigDecimal valor) {
+<span class="nc" id="L22">        this.transacao.setValor(valor);</span>
+<span class="nc" id="L23">        return this;</span>
     }
-
-    public TransacaoBuilder comValorTotal(Double valorTotal) {
-<span class="nc" id="L26">        this.transacao.setValorTotal(valorTotal);</span>
+    public TransacaoBuilder comData(LocalDateTime data) {
+<span class="nc" id="L26">        this.transacao.setDataTransacao(data);</span>
 <span class="nc" id="L27">        return this;</span>
     }
-
-    public TransacaoBuilder comDataTransacao(LocalDateTime dataTransacao) {
-<span class="nc" id="L31">        this.transacao.setDataTransacao(dataTransacao);</span>
-<span class="nc" id="L32">        return this;</span>
+    public TransacaoBuilder comTipo(TipoTransacao tipo) {
+<span class="nc" id="L30">        this.transacao.setTipoTransacao(tipo);</span>
+<span class="nc" id="L31">        return this;</span>
     }
 
-    public TransacaoBuilder comTipo(TipoTransacao tipo) {
-<span class="nc" id="L36">        this.transacao.setTipo(tipo);</span>
-<span class="nc" id="L37">        return this;</span>
+    public TransacaoBuilder comDescricao(String descricao) {
+<span class="nc" id="L35">        this.transacao.setDescricao(descricao);</span>
+<span class="nc" id="L36">        return this;</span>
     }
 
     public Transacao build() {
-<span class="nc" id="L41">        return this.transacao;</span>
+<span class="nc" id="L40">        return this.transacao;</span>
     }
 } 
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

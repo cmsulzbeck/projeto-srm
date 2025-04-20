@@ -6,6 +6,8 @@ import com.srm.entity.Produto;
 import com.srm.exception.ProdutoNaoEncontradoException;
 import com.srm.mapper.ProdutoMapper;
 import com.srm.repository.ProdutoRepository;
+import com.srm.repository.TaxaCambioProdutoRepository;
+import com.srm.repository.FormulasConversaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +35,12 @@ class ProdutoServiceTest {
 
     @Mock
     private ProdutoMapper produtoMapper;
+
+    @Mock
+    private TaxaCambioProdutoRepository taxaCambioProdutoRepository;
+
+    @Mock
+    private FormulasConversaoRepository formulasConversaoRepository;
 
     @InjectMocks
     private ProdutoService produtoService;
@@ -125,25 +133,24 @@ class ProdutoServiceTest {
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
         when(produtoMapper.toDTO(any(Produto.class))).thenReturn(produtoDTO);
 
-        ProdutoDTO resultado = produtoService.buscarPorId(1L);
+        Optional<ProdutoDTO> resultado = produtoService.buscarPorId(1L);
 
-        assertNotNull(resultado);
-        assertEquals(produtoDTO.getId(), resultado.getId());
-        assertEquals(produtoDTO.getNome(), resultado.getNome());
-        assertEquals(produtoDTO.getDescricao(), resultado.getDescricao());
+        assertTrue(resultado.isPresent());
+        assertEquals(produtoDTO.getId(), resultado.get().getId());
+        assertEquals(produtoDTO.getNome(), resultado.get().getNome());
+        assertEquals(produtoDTO.getDescricao(), resultado.get().getDescricao());
 
         verify(produtoRepository).findById(1L);
         verify(produtoMapper).toDTO(produto);
     }
 
     @Test
-    void buscarPorId_QuandoProdutoNaoExiste_DeveLancarExcecao() {
+    void buscarPorId_QuandoProdutoNaoExiste_DeveRetornarOptionalVazio() {
         when(produtoRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ProdutoNaoEncontradoException.class, () -> {
-            produtoService.buscarPorId(1L);
-        });
+        Optional<ProdutoDTO> resultado = produtoService.buscarPorId(1L);
 
+        assertFalse(resultado.isPresent());
         verify(produtoRepository).findById(1L);
         verify(produtoMapper, never()).toDTO(any());
     }
@@ -167,11 +174,15 @@ class ProdutoServiceTest {
     @Test
     void deletar_QuandoProdutoExiste_DeveExecutarComSucesso() {
         when(produtoRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(taxaCambioProdutoRepository).deleteByProdutoId(1L);
+        doNothing().when(formulasConversaoRepository).deleteByProdutoId(1L);
         doNothing().when(produtoRepository).deleteById(1L);
 
         produtoService.deletar(1L);
 
         verify(produtoRepository).existsById(1L);
+        verify(taxaCambioProdutoRepository).deleteByProdutoId(1L);
+        verify(formulasConversaoRepository).deleteByProdutoId(1L);
         verify(produtoRepository).deleteById(1L);
     }
 
@@ -185,5 +196,7 @@ class ProdutoServiceTest {
 
         verify(produtoRepository).existsById(1L);
         verify(produtoRepository, never()).deleteById(any());
+        verify(taxaCambioProdutoRepository, never()).deleteByProdutoId(any());
+        verify(formulasConversaoRepository, never()).deleteByProdutoId(any());
     }
 } 

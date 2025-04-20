@@ -2,7 +2,8 @@ package com.srm.builder;
 
 import com.srm.entity.Produto;
 import com.srm.entity.Transacao;
-import com.srm.entity.TipoTransacao;
+import com.srm.enums.TipoTransacao;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class TransacaoBuilder {
@@ -17,23 +18,21 @@ public class TransacaoBuilder {
         return this;
     }
 
-    public TransacaoBuilder comQuantidade(Integer quantidade) {
-        this.transacao.setQuantidade(quantidade);
+    public TransacaoBuilder comValor(BigDecimal valor) {
+        this.transacao.setValor(valor);
         return this;
     }
-
-    public TransacaoBuilder comValorTotal(Double valorTotal) {
-        this.transacao.setValorTotal(valorTotal);
+    public TransacaoBuilder comData(LocalDateTime data) {
+        this.transacao.setDataTransacao(data);
         return this;
     }
-
-    public TransacaoBuilder comDataTransacao(LocalDateTime dataTransacao) {
-        this.transacao.setDataTransacao(dataTransacao);
-        return this;
-    }
-
     public TransacaoBuilder comTipo(TipoTransacao tipo) {
-        this.transacao.setTipo(tipo);
+        this.transacao.setTipoTransacao(tipo);
+        return this;
+    }
+
+    public TransacaoBuilder comDescricao(String descricao) {
+        this.transacao.setDescricao(descricao);
         return this;
     }
 

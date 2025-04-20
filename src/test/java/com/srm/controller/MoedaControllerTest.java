@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,22 +79,19 @@ class MoedaControllerTest {
 
     @Test
     void atualizarTaxaCambio_QuandoMoedaNaoExiste_DeveRetornarNotFound() {
-        BigDecimal novaTaxa = BigDecimal.valueOf(5.5);
-        when(moedaService.atualizarTaxaCambio(anyString(), any(BigDecimal.class)))
-            .thenThrow(new MoedaNaoEncontradaException("USD"));
+        String codigo = "USD";
+        BigDecimal novaTaxa = new BigDecimal("5.50");
+        when(moedaService.atualizarTaxaCambio(codigo, novaTaxa))
+                .thenThrow(new MoedaNaoEncontradaException(codigo));
 
-        ResponseEntity<MoedaDTO> response = moedaController.atualizarTaxaCambio("USD", novaTaxa);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-
-        verify(moedaService).atualizarTaxaCambio("USD", novaTaxa);
+        assertThrows(MoedaNaoEncontradaException.class, () -> {
+            moedaController.atualizarTaxaCambio(codigo, novaTaxa);
+        });
     }
 
     @Test
     void buscarPorCodigo_QuandoMoedaExiste_DeveRetornarMoedaDTO() {
-        when(moedaService.buscarPorCodigo(anyString())).thenReturn(moedaDTO);
+        when(moedaService.buscarPorCodigo(anyString())).thenReturn(Optional.of(moedaDTO));
 
         ResponseEntity<MoedaDTO> response = moedaController.buscarPorCodigo("USD");
 
@@ -109,7 +107,7 @@ class MoedaControllerTest {
 
     @Test
     void buscarPorCodigo_QuandoMoedaNaoExiste_DeveRetornarNotFound() {
-        when(moedaService.buscarPorCodigo(anyString())).thenReturn(null);
+        when(moedaService.buscarPorCodigo(anyString())).thenReturn(Optional.empty());
 
         ResponseEntity<MoedaDTO> response = moedaController.buscarPorCodigo("XYZ");
 

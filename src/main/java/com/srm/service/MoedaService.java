@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,10 +40,8 @@ public class MoedaService {
     public MoedaDTO atualizarTaxaCambio(String codigo, BigDecimal novaTaxa) {
         log.info("Atualizando taxa de câmbio para moeda {}: nova taxa = {}", codigo, novaTaxa);
         
-        Moeda moeda = moedaRepository.findByCodigo(codigo);
-        if (moeda == null) {
-            throw new MoedaNaoEncontradaException(codigo);
-        }
+        Moeda moeda = moedaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new MoedaNaoEncontradaException(codigo));
         
         moeda.setTaxaCambio(novaTaxa);
         moeda = moedaRepository.save(moeda);
@@ -50,20 +49,15 @@ public class MoedaService {
         return moedaMapper.toDTO(moeda);
     }
 
-    public MoedaDTO buscarPorCodigo(String codigo) {
-        Moeda moeda = moedaRepository.findByCodigo(codigo);
-        if (moeda == null) {
-            throw new MoedaNaoEncontradaException(codigo);
-        }
-        return moedaMapper.toDTO(moeda);
+    public Optional<MoedaDTO> buscarPorCodigo(String codigo) {
+        log.info("Buscando moeda por código: {}", codigo);
+        return moedaRepository.findByCodigo(codigo)
+                .map(moedaMapper::toDTO);
     }
 
     public Moeda buscarEntidadePorCodigo(String codigo) {
-        Moeda moeda = moedaRepository.findByCodigo(codigo);
-        if (moeda == null) {
-            throw new MoedaNaoEncontradaException(codigo);
-        }
-        return moeda;
+        return moedaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new MoedaNaoEncontradaException(codigo));
     }
 
     public List<MoedaDTO> listarTodas() {

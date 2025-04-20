@@ -3,13 +3,14 @@ package com.srm.mapper;
 import com.srm.dto.ProdutoDTO;
 import com.srm.entity.Moeda;
 import com.srm.entity.Produto;
+import com.srm.entity.Reino;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-04-18T03:31:04-0300",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)"
+    date = "2025-04-20T02:13:23-0300",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.z20250331-1358, environment: Java 21.0.6 (Eclipse Adoptium)"
 )
 @Component
 public class ProdutoMapperImpl implements ProdutoMapper {
@@ -24,9 +25,10 @@ public class ProdutoMapperImpl implements ProdutoMapper {
 
         produtoDTO.moedaCodigo( produtoMoedaCodigo( produto ) );
         produtoDTO.quantidadeEstoque( produto.getQuantidadeEstoque() );
+        produtoDTO.reinoId( produtoReinoId( produto ) );
+        produtoDTO.descricao( produto.getDescricao() );
         produtoDTO.id( produto.getId() );
         produtoDTO.nome( produto.getNome() );
-        produtoDTO.descricao( produto.getDescricao() );
         produtoDTO.preco( produto.getPreco() );
 
         return produtoDTO.build();
@@ -40,10 +42,11 @@ public class ProdutoMapperImpl implements ProdutoMapper {
 
         Produto.ProdutoBuilder produto = Produto.builder();
 
+        produto.reino( produtoDTOToReino( dto ) );
         produto.quantidadeEstoque( dto.getQuantidadeEstoque() );
+        produto.descricao( dto.getDescricao() );
         produto.id( dto.getId() );
         produto.nome( dto.getNome() );
-        produto.descricao( dto.getDescricao() );
         produto.preco( dto.getPreco() );
 
         return produto.build();
@@ -56,9 +59,8 @@ public class ProdutoMapperImpl implements ProdutoMapper {
         }
 
         produto.setQuantidadeEstoque( dto.getQuantidadeEstoque() );
-        produto.setId( dto.getId() );
-        produto.setNome( dto.getNome() );
         produto.setDescricao( dto.getDescricao() );
+        produto.setNome( dto.getNome() );
         produto.setPreco( dto.getPreco() );
     }
 
@@ -75,5 +77,32 @@ public class ProdutoMapperImpl implements ProdutoMapper {
             return null;
         }
         return codigo;
+    }
+
+    private Long produtoReinoId(Produto produto) {
+        if ( produto == null ) {
+            return null;
+        }
+        Reino reino = produto.getReino();
+        if ( reino == null ) {
+            return null;
+        }
+        Long id = reino.getId();
+        if ( id == null ) {
+            return null;
+        }
+        return id;
+    }
+
+    protected Reino produtoDTOToReino(ProdutoDTO produtoDTO) {
+        if ( produtoDTO == null ) {
+            return null;
+        }
+
+        Reino reino = new Reino();
+
+        reino.setId( produtoDTO.getReinoId() );
+
+        return reino;
     }
 }

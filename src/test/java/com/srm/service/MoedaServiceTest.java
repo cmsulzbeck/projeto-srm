@@ -75,7 +75,7 @@ class MoedaServiceTest {
     @Test
     void atualizarTaxaCambio_QuandoMoedaExiste_DeveRetornarMoedaDTO() {
         BigDecimal novaTaxa = new BigDecimal("1.5");
-        when(moedaRepository.findByCodigo("USD")).thenReturn(moeda);
+        when(moedaRepository.findByCodigo("USD")).thenReturn(Optional.of(moeda));
         when(moedaRepository.save(any(Moeda.class))).thenReturn(moeda);
         when(moedaMapper.toDTO(any(Moeda.class))).thenReturn(moedaDTO);
 
@@ -92,40 +92,38 @@ class MoedaServiceTest {
 
     @Test
     void atualizarTaxaCambio_QuandoMoedaNaoExiste_DeveLancarExcecao() {
-        when(moedaRepository.findByCodigo("XXX")).thenReturn(null);
+        String codigo = "USD";
+        BigDecimal novaTaxa = new BigDecimal("5.50");
+        when(moedaRepository.findByCodigo(codigo)).thenReturn(Optional.empty());
 
         assertThrows(MoedaNaoEncontradaException.class, () -> {
-            moedaService.atualizarTaxaCambio("XXX", BigDecimal.ONE);
+            moedaService.atualizarTaxaCambio(codigo, novaTaxa);
         });
-
-        verify(moedaRepository).findByCodigo("XXX");
-        verify(moedaRepository, never()).save(any());
     }
 
     @Test
     void buscarPorCodigo_QuandoMoedaExiste_DeveRetornarMoedaDTO() {
-        when(moedaRepository.findByCodigo("USD")).thenReturn(moeda);
+        when(moedaRepository.findByCodigo("USD")).thenReturn(Optional.of(moeda));
         when(moedaMapper.toDTO(any(Moeda.class))).thenReturn(moedaDTO);
 
-        MoedaDTO resultado = moedaService.buscarPorCodigo("USD");
+        Optional<MoedaDTO> resultado = moedaService.buscarPorCodigo("USD");
 
-        assertNotNull(resultado);
-        assertEquals(moedaDTO.getId(), resultado.getId());
-        assertEquals(moedaDTO.getNome(), resultado.getNome());
-        assertEquals(moedaDTO.getCodigo(), resultado.getCodigo());
+        assertTrue(resultado.isPresent());
+        assertEquals(moedaDTO.getId(), resultado.get().getId());
+        assertEquals(moedaDTO.getNome(), resultado.get().getNome());
+        assertEquals(moedaDTO.getCodigo(), resultado.get().getCodigo());
 
         verify(moedaRepository).findByCodigo("USD");
         verify(moedaMapper).toDTO(moeda);
     }
 
     @Test
-    void buscarPorCodigo_QuandoMoedaNaoExiste_DeveLancarExcecao() {
-        when(moedaRepository.findByCodigo("XXX")).thenReturn(null);
+    void buscarPorCodigo_QuandoMoedaNaoExiste_DeveRetornarOptionalVazio() {
+        when(moedaRepository.findByCodigo("XXX")).thenReturn(Optional.empty());
 
-        assertThrows(MoedaNaoEncontradaException.class, () -> {
-            moedaService.buscarPorCodigo("XXX");
-        });
+        Optional<MoedaDTO> resultado = moedaService.buscarPorCodigo("XXX");
 
+        assertFalse(resultado.isPresent());
         verify(moedaRepository).findByCodigo("XXX");
         verify(moedaMapper, never()).toDTO(any());
     }

@@ -1,37 +1,70 @@
 package com.srm.controller;
 
-import com.srm.dto.ConversaoDTO;
+import com.srm.dto.TaxaCambioProdutoDTO;
+import com.srm.dto.TransacaoDTO;
+import com.srm.entity.Transacao;
 import com.srm.service.ConversaoService;
+import com.srm.mapper.TaxaCambioProdutoMapper;
+import com.srm.mapper.TransacaoMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/conversoes")
-@Tag(name = "Conversões", description = "API para conversão de moedas")
+@RequiredArgsConstructor
+@Tag(name = "Conversão de Moedas", description = "API para conversão de moedas e produtos")
 public class ConversaoController {
 
-    @Autowired
-    private ConversaoService conversaoService;
+    private final ConversaoService conversaoService;
+    private final TaxaCambioProdutoMapper taxaCambioProdutoMapper;
+    private final TransacaoMapper transacaoMapper;
 
-    @PostMapping
-    @Operation(summary = "Realizar conversão de moeda")
-    public ResponseEntity<BigDecimal> converterMoeda(@RequestBody ConversaoDTO conversaoDTO) {
-        try {
-            BigDecimal resultado = conversaoService.converter(
-                conversaoDTO.getMoedaOrigem(),
-                conversaoDTO.getMoedaDestino(),
-                conversaoDTO.getValorOriginal()
-            );
-            return ResponseEntity.ok(resultado);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @Operation(summary = "Criar nova transação")
+    @PostMapping("/transacoes")
+    public ResponseEntity<TransacaoDTO> criarTransacao(@RequestBody TransacaoDTO transacaoDTO) {
+        Transacao transacao = conversaoService.criarTransacao(transacaoDTO);
+        return ResponseEntity.ok(transacaoMapper.toDTO(transacao));
+    }
+
+    @Operation(summary = "Converter valor entre moedas")
+    @GetMapping("/moedas")
+    public ResponseEntity<BigDecimal> converterMoedas(
+            @RequestParam Long moedaOrigemId,
+            @RequestParam Long moedaDestinoId,
+            @RequestParam BigDecimal valor) {
+        return ResponseEntity.ok(conversaoService.converterMoedas(moedaOrigemId, moedaDestinoId, valor));
+    }
+
+    @Operation(summary = "Converter valor de produto entre moedas")
+    @GetMapping("/produtos")
+    public ResponseEntity<BigDecimal> converterProduto(
+            @RequestParam Long produtoId,
+            @RequestParam Long moedaOrigemId,
+            @RequestParam Long moedaDestinoId,
+            @RequestParam BigDecimal valor) {
+        return ResponseEntity.ok(conversaoService.converterProduto(produtoId, moedaOrigemId, moedaDestinoId, valor));
+    }
+
+    @Operation(summary = "Atualizar taxa de câmbio de produto")
+    @PostMapping("/taxas")
+    public ResponseEntity<TaxaCambioProdutoDTO> atualizarTaxa(
+            @RequestParam Long produtoId,
+            @RequestParam Long moedaOrigemId,
+            @RequestParam Long moedaDestinoId,
+            @RequestParam BigDecimal taxa) {
+        return ResponseEntity.ok(
+            taxaCambioProdutoMapper.toDTO(
+                conversaoService.atualizarTaxa(produtoId, moedaOrigemId, moedaDestinoId, taxa)
+            )
+        );
     }
 } 

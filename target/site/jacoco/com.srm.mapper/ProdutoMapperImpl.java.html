@@ -3,78 +3,107 @@
 import com.srm.dto.ProdutoDTO;
 import com.srm.entity.Moeda;
 import com.srm.entity.Produto;
+import com.srm.entity.Reino;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = &quot;org.mapstruct.ap.MappingProcessor&quot;,
-    date = &quot;2025-04-18T03:31:04-0300&quot;,
+    date = &quot;2025-04-20T01:17:51-0300&quot;,
     comments = &quot;version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)&quot;
 )
 @Component
-<span class="fc" id="L15">public class ProdutoMapperImpl implements ProdutoMapper {</span>
+<span class="fc" id="L16">public class ProdutoMapperImpl implements ProdutoMapper {</span>
 
     @Override
     public ProdutoDTO toDTO(Produto produto) {
-<span class="fc bfc" id="L19" title="All 2 branches covered.">        if ( produto == null ) {</span>
-<span class="fc" id="L20">            return null;</span>
+<span class="fc bfc" id="L20" title="All 2 branches covered.">        if ( produto == null ) {</span>
+<span class="fc" id="L21">            return null;</span>
         }
 
-<span class="fc" id="L23">        ProdutoDTO.ProdutoDTOBuilder produtoDTO = ProdutoDTO.builder();</span>
+<span class="fc" id="L24">        ProdutoDTO.ProdutoDTOBuilder produtoDTO = ProdutoDTO.builder();</span>
 
-<span class="fc" id="L25">        produtoDTO.moedaCodigo( produtoMoedaCodigo( produto ) );</span>
-<span class="fc" id="L26">        produtoDTO.quantidadeEstoque( produto.getQuantidadeEstoque() );</span>
-<span class="fc" id="L27">        produtoDTO.id( produto.getId() );</span>
-<span class="fc" id="L28">        produtoDTO.nome( produto.getNome() );</span>
-<span class="fc" id="L29">        produtoDTO.descricao( produto.getDescricao() );</span>
-<span class="fc" id="L30">        produtoDTO.preco( produto.getPreco() );</span>
+<span class="fc" id="L26">        produtoDTO.moedaCodigo( produtoMoedaCodigo( produto ) );</span>
+<span class="fc" id="L27">        produtoDTO.quantidadeEstoque( produto.getQuantidadeEstoque() );</span>
+<span class="fc" id="L28">        produtoDTO.reinoId( produtoReinoId( produto ) );</span>
+<span class="fc" id="L29">        produtoDTO.id( produto.getId() );</span>
+<span class="fc" id="L30">        produtoDTO.nome( produto.getNome() );</span>
+<span class="fc" id="L31">        produtoDTO.descricao( produto.getDescricao() );</span>
+<span class="fc" id="L32">        produtoDTO.preco( produto.getPreco() );</span>
 
-<span class="fc" id="L32">        return produtoDTO.build();</span>
+<span class="fc" id="L34">        return produtoDTO.build();</span>
     }
 
     @Override
     public Produto toEntity(ProdutoDTO dto) {
-<span class="fc bfc" id="L37" title="All 2 branches covered.">        if ( dto == null ) {</span>
-<span class="fc" id="L38">            return null;</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if ( dto == null ) {</span>
+<span class="fc" id="L40">            return null;</span>
         }
 
-<span class="fc" id="L41">        Produto.ProdutoBuilder produto = Produto.builder();</span>
+<span class="fc" id="L43">        Produto.ProdutoBuilder produto = Produto.builder();</span>
 
-<span class="fc" id="L43">        produto.quantidadeEstoque( dto.getQuantidadeEstoque() );</span>
-<span class="fc" id="L44">        produto.id( dto.getId() );</span>
-<span class="fc" id="L45">        produto.nome( dto.getNome() );</span>
-<span class="fc" id="L46">        produto.descricao( dto.getDescricao() );</span>
-<span class="fc" id="L47">        produto.preco( dto.getPreco() );</span>
+<span class="fc" id="L45">        produto.reino( produtoDTOToReino( dto ) );</span>
+<span class="fc" id="L46">        produto.quantidadeEstoque( dto.getQuantidadeEstoque() );</span>
+<span class="fc" id="L47">        produto.id( dto.getId() );</span>
+<span class="fc" id="L48">        produto.nome( dto.getNome() );</span>
+<span class="fc" id="L49">        produto.descricao( dto.getDescricao() );</span>
+<span class="fc" id="L50">        produto.preco( dto.getPreco() );</span>
 
-<span class="fc" id="L49">        return produto.build();</span>
+<span class="fc" id="L52">        return produto.build();</span>
     }
 
     @Override
     public void updateEntityFromDTO(ProdutoDTO dto, Produto produto) {
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if ( dto == null ) {</span>
-<span class="nc" id="L55">            return;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if ( dto == null ) {</span>
+<span class="nc" id="L58">            return;</span>
         }
 
-<span class="nc" id="L58">        produto.setQuantidadeEstoque( dto.getQuantidadeEstoque() );</span>
-<span class="nc" id="L59">        produto.setId( dto.getId() );</span>
-<span class="nc" id="L60">        produto.setNome( dto.getNome() );</span>
-<span class="nc" id="L61">        produto.setDescricao( dto.getDescricao() );</span>
-<span class="nc" id="L62">        produto.setPreco( dto.getPreco() );</span>
-<span class="nc" id="L63">    }</span>
+<span class="nc" id="L61">        produto.setQuantidadeEstoque( dto.getQuantidadeEstoque() );</span>
+<span class="nc" id="L62">        produto.setNome( dto.getNome() );</span>
+<span class="nc" id="L63">        produto.setDescricao( dto.getDescricao() );</span>
+<span class="nc" id="L64">        produto.setPreco( dto.getPreco() );</span>
+<span class="nc" id="L65">    }</span>
 
     private String produtoMoedaCodigo(Produto produto) {
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if ( produto == null ) {</span>
-<span class="nc" id="L67">            return null;</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if ( produto == null ) {</span>
+<span class="nc" id="L69">            return null;</span>
         }
-<span class="fc" id="L69">        Moeda moeda = produto.getMoeda();</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if ( moeda == null ) {</span>
-<span class="fc" id="L71">            return null;</span>
+<span class="fc" id="L71">        Moeda moeda = produto.getMoeda();</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if ( moeda == null ) {</span>
+<span class="fc" id="L73">            return null;</span>
         }
-<span class="nc" id="L73">        String codigo = moeda.getCodigo();</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">        if ( codigo == null ) {</span>
-<span class="nc" id="L75">            return null;</span>
+<span class="nc" id="L75">        String codigo = moeda.getCodigo();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if ( codigo == null ) {</span>
+<span class="nc" id="L77">            return null;</span>
         }
-<span class="nc" id="L77">        return codigo;</span>
+<span class="nc" id="L79">        return codigo;</span>
+    }
+
+    private Long produtoReinoId(Produto produto) {
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if ( produto == null ) {</span>
+<span class="nc" id="L84">            return null;</span>
+        }
+<span class="fc" id="L86">        Reino reino = produto.getReino();</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if ( reino == null ) {</span>
+<span class="fc" id="L88">            return null;</span>
+        }
+<span class="nc" id="L90">        Long id = reino.getId();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if ( id == null ) {</span>
+<span class="nc" id="L92">            return null;</span>
+        }
+<span class="nc" id="L94">        return id;</span>
+    }
+
+    protected Reino produtoDTOToReino(ProdutoDTO produtoDTO) {
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if ( produtoDTO == null ) {</span>
+<span class="nc" id="L99">            return null;</span>
+        }
+
+<span class="fc" id="L102">        Reino reino = new Reino();</span>
+
+<span class="fc" id="L104">        reino.setId( produtoDTO.getReinoId() );</span>
+
+<span class="fc" id="L106">        return reino;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReinoController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.controller</a> &gt; <span class="el_source">ReinoController.java</span></div><h1>ReinoController.java</h1><pre class="source lang-java linenums">package com.srm.controller;
+
+import com.srm.dto.ReinoDTO;
+import com.srm.service.ReinoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+<span class="nc" id="L19">@Slf4j</span>
+@RestController
+@RequestMapping(&quot;/api/reinos&quot;)
+<span class="nc" id="L22">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Reinos&quot;, description = &quot;API para gerenciamento de reinos&quot;)
+public class ReinoController {
+
+    private final ReinoService reinoService;
+
+    @Operation(summary = &quot;Criar um novo reino&quot;, description = &quot;Cria um novo reino com os dados fornecidos&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Reino criado com sucesso&quot;,
+            content = @Content(schema = @Schema(implementation = ReinoDTO.class))),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos fornecidos&quot;)
+    })
+    @PostMapping
+    public ResponseEntity&lt;ReinoDTO&gt; criarReino(@RequestBody ReinoDTO reinoDTO) {
+<span class="nc" id="L36">        log.info(&quot;Recebendo requisição para criar reino: {}&quot;, reinoDTO);</span>
+        try {
+<span class="nc" id="L38">            ReinoDTO reinoCriado = reinoService.criarReino(reinoDTO);</span>
+<span class="nc" id="L39">            log.info(&quot;Reino criado com sucesso: {}&quot;, reinoCriado);</span>
+<span class="nc" id="L40">            return ResponseEntity.ok(reinoCriado);</span>
+<span class="nc" id="L41">        } catch (Exception e) {</span>
+<span class="nc" id="L42">            log.error(&quot;Erro ao criar reino&quot;, e);</span>
+<span class="nc" id="L43">            throw e;</span>
+        }
+    }
+
+    @Operation(summary = &quot;Buscar reino por ID&quot;, description = &quot;Retorna os dados de um reino específico&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Reino encontrado&quot;,
+            content = @Content(schema = @Schema(implementation = ReinoDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Reino não encontrado&quot;)
+    })
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ReinoDTO&gt; buscarPorId(
+            @Parameter(description = &quot;ID do reino&quot;, example = &quot;1&quot;)
+            @PathVariable Long id) {
+<span class="nc" id="L57">        log.info(&quot;Recebendo requisição para buscar reino com id: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L59">            ReinoDTO reino = reinoService.buscarPorId(id);</span>
+<span class="nc" id="L60">            log.info(&quot;Reino encontrado: {}&quot;, reino);</span>
+<span class="nc" id="L61">            return ResponseEntity.ok(reino);</span>
+<span class="nc" id="L62">        } catch (Exception e) {</span>
+<span class="nc" id="L63">            log.error(&quot;Erro ao buscar reino&quot;, e);</span>
+<span class="nc" id="L64">            throw e;</span>
+        }
+    }
+
+    @Operation(summary = &quot;Listar todos os reinos&quot;, description = &quot;Retorna uma lista com todos os reinos cadastrados&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Lista de reinos retornada com sucesso&quot;,
+            content = @Content(schema = @Schema(implementation = ReinoDTO.class)))
+    })
+    @GetMapping
+    public ResponseEntity&lt;List&lt;ReinoDTO&gt;&gt; listarTodos() {
+<span class="nc" id="L75">        log.info(&quot;Recebendo requisição para listar todos os reinos&quot;);</span>
+        try {
+<span class="nc" id="L77">            List&lt;ReinoDTO&gt; reinos = reinoService.listarTodos();</span>
+<span class="nc" id="L78">            log.info(&quot;Total de reinos encontrados: {}&quot;, reinos.size());</span>
+<span class="nc" id="L79">            return ResponseEntity.ok(reinos);</span>
+<span class="nc" id="L80">        } catch (Exception e) {</span>
+<span class="nc" id="L81">            log.error(&quot;Erro ao listar reinos&quot;, e);</span>
+<span class="nc" id="L82">            throw e;</span>
+        }
+    }
+
+    @Operation(summary = &quot;Atualizar um reino&quot;, description = &quot;Atualiza os dados de um reino existente&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Reino atualizado com sucesso&quot;,
+            content = @Content(schema = @Schema(implementation = ReinoDTO.class))),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Reino não encontrado&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dados inválidos fornecidos&quot;)
+    })
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ReinoDTO&gt; atualizarReino(
+            @Parameter(description = &quot;ID do reino&quot;, example = &quot;1&quot;)
+            @PathVariable Long id,
+            @RequestBody ReinoDTO reinoDTO) {
+<span class="nc" id="L98">        log.info(&quot;Recebendo requisição para atualizar reino com id {}: {}&quot;, id, reinoDTO);</span>
+        try {
+<span class="nc" id="L100">            ReinoDTO reinoAtualizado = reinoService.atualizarReino(id, reinoDTO);</span>
+<span class="nc" id="L101">            log.info(&quot;Reino atualizado com sucesso: {}&quot;, reinoAtualizado);</span>
+<span class="nc" id="L102">            return ResponseEntity.ok(reinoAtualizado);</span>
+<span class="nc" id="L103">        } catch (Exception e) {</span>
+<span class="nc" id="L104">            log.error(&quot;Erro ao atualizar reino&quot;, e);</span>
+<span class="nc" id="L105">            throw e;</span>
+        }
+    }
+
+    @Operation(summary = &quot;Deletar um reino&quot;, description = &quot;Remove um reino do sistema&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;204&quot;, description = &quot;Reino deletado com sucesso&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Reino não encontrado&quot;)
+    })
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; deletarReino(
+            @Parameter(description = &quot;ID do reino&quot;, example = &quot;1&quot;)
+            @PathVariable Long id) {
+<span class="nc" id="L118">        log.info(&quot;Recebendo requisição para deletar reino com id: {}&quot;, id);</span>
+        try {
+<span class="nc" id="L120">            reinoService.deletarReino(id);</span>
+<span class="nc" id="L121">            log.info(&quot;Reino deletado com sucesso&quot;);</span>
+<span class="nc" id="L122">            return ResponseEntity.noContent().build();</span>
+<span class="nc" id="L123">        } catch (Exception e) {</span>
+<span class="nc" id="L124">            log.error(&quot;Erro ao deletar reino&quot;, e);</span>
+<span class="nc" id="L125">            throw e;</span>
+        }
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

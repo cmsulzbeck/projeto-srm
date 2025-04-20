@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReinoMapperImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-srm</a> &gt; <a href="index.source.html" class="el_package">com.srm.mapper</a> &gt; <span class="el_source">ReinoMapperImpl.java</span></div><h1>ReinoMapperImpl.java</h1><pre class="source lang-java linenums">package com.srm.mapper;
+
+import com.srm.dto.ReinoDTO;
+import com.srm.entity.Reino;
+import javax.annotation.processing.Generated;
+import org.springframework.stereotype.Component;
+
+@Generated(
+    value = &quot;org.mapstruct.ap.MappingProcessor&quot;,
+    date = &quot;2025-04-20T01:17:50-0300&quot;,
+    comments = &quot;version: 1.5.5.Final, compiler: javac, environment: Java 17.0.15 (Oracle Corporation)&quot;
+)
+@Component
+<span class="nc" id="L14">public class ReinoMapperImpl implements ReinoMapper {</span>
+
+    @Override
+    public Reino toEntity(ReinoDTO reinoDTO) {
+<span class="nc bnc" id="L18" title="All 2 branches missed.">        if ( reinoDTO == null ) {</span>
+<span class="nc" id="L19">            return null;</span>
+        }
+
+<span class="nc" id="L22">        Reino reino = new Reino();</span>
+
+<span class="nc" id="L24">        reino.setId( reinoDTO.getId() );</span>
+<span class="nc" id="L25">        reino.setNome( reinoDTO.getNome() );</span>
+<span class="nc" id="L26">        reino.setDescricao( reinoDTO.getDescricao() );</span>
+
+<span class="nc" id="L28">        return reino;</span>
+    }
+
+    @Override
+    public ReinoDTO toDTO(Reino reino) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if ( reino == null ) {</span>
+<span class="nc" id="L34">            return null;</span>
+        }
+
+<span class="nc" id="L37">        ReinoDTO reinoDTO = new ReinoDTO();</span>
+
+<span class="nc" id="L39">        reinoDTO.setId( reino.getId() );</span>
+<span class="nc" id="L40">        reinoDTO.setNome( reino.getNome() );</span>
+<span class="nc" id="L41">        reinoDTO.setDescricao( reino.getDescricao() );</span>
+
+<span class="nc" id="L43">        return reinoDTO;</span>
+    }
+
+    @Override
+    public void updateEntity(ReinoDTO reinoDTO, Reino reino) {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if ( reinoDTO == null ) {</span>
+<span class="nc" id="L49">            return;</span>
+        }
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if ( reinoDTO.getId() != null ) {</span>
+<span class="nc" id="L53">            reino.setId( reinoDTO.getId() );</span>
+        }
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if ( reinoDTO.getNome() != null ) {</span>
+<span class="nc" id="L56">            reino.setNome( reinoDTO.getNome() );</span>
+        }
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if ( reinoDTO.getDescricao() != null ) {</span>
+<span class="nc" id="L59">            reino.setDescricao( reinoDTO.getDescricao() );</span>
+        }
+<span class="nc" id="L61">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
