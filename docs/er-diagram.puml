@@ -1,0 +1,85 @@
+@startuml MercadoSRM ER Diagram
+
+' Configurações
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' Entidades
+entity "MOEDA" as moeda {
+    + id : BIGINT <<PK>>
+    --
+    nome : VARCHAR(100)
+    codigo : VARCHAR(3)
+    taxa_cambio : DECIMAL(19,2)
+    data_atualizacao : TIMESTAMP
+}
+
+entity "PRODUTO" as produto {
+    + id : BIGINT <<PK>>
+    --
+    nome : VARCHAR(100)
+    descricao : VARCHAR(255)
+    preco : DECIMAL(19,2)
+    quantidade_estoque : INTEGER
+    moeda_id : BIGINT <<FK>>
+}
+
+entity "REINO" as reino {
+    + id : BIGINT <<PK>>
+    --
+    nome : VARCHAR(100)
+    descricao : VARCHAR(255)
+}
+
+entity "TRANSACAO" as transacao {
+    + id : BIGINT <<PK>>
+    --
+    tipo : VARCHAR(10)
+    valor : DECIMAL(19,2)
+    data : TIMESTAMP
+    descricao : VARCHAR(255)
+    produto_id : BIGINT <<FK>>
+    moeda_origem_id : BIGINT <<FK>>
+    moeda_destino_id : BIGINT <<FK>>
+    reino_id : BIGINT <<FK>>
+}
+
+entity "FORMULA_CONVERSAO" as formula {
+    + id : BIGINT <<PK>>
+    --
+    produto_id : BIGINT <<FK>>
+    reino_id : BIGINT <<FK>>
+    formula : VARCHAR(255)
+}
+
+entity "TAXA_CAMBIO_PRODUTO" as taxa {
+    + id : BIGINT <<PK>>
+    --
+    produto_id : BIGINT <<FK>>
+    moeda_id : BIGINT <<FK>>
+    taxa : DECIMAL(19,2)
+    data_atualizacao : TIMESTAMP
+}
+
+' Relacionamentos
+moeda ||--o{ produto
+moeda ||--o{ transacao : moeda_origem
+moeda ||--o{ transacao : moeda_destino
+produto ||--o{ transacao
+reino ||--o{ transacao
+reino ||--o{ formula
+produto ||--o{ formula
+produto ||--o{ taxa
+moeda ||--o{ taxa
+
+' Legenda
+legend right
+    <<PK>> Primary Key
+    <<FK>> Foreign Key
+endlegend
+
+@enduml 
