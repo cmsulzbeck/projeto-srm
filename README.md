@@ -132,6 +132,22 @@ CREATE INDEX idx_taxa_moeda ON taxa_cambio_produto(moeda_id);
 ```
 
 ### Diagrama ER
+O diagrama ER do banco de dados está disponível em `docs/er-diagram.png`. Para gerar o diagrama:
+
+1. Usando Docker (recomendado):
+```bash
+cd docs
+chmod +x generate-diagram-docker.sh
+./generate-diagram-docker.sh
+```
+
+2. Localmente (requer PlantUML e Graphviz):
+```bash
+cd docs
+plantuml er-diagram.puml
+```
+
+![Diagrama ER do Banco de Dados](docs/er-diagram.png)
 
 ## Cache
 O sistema utiliza Caffeine Cache para melhorar a performance das consultas de taxas de câmbio:
