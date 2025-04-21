@@ -147,7 +147,7 @@ cd docs
 plantuml er-diagram.puml
 ```
 
-![Diagrama ER do Banco de Dados](docs/er-diagram.png)
+![Diagrama ER do Banco de Dados](docs/MercadoSRM%20ER%20Diagram.png)
 
 ## Cache
 O sistema utiliza Caffeine Cache para melhorar a performance das consultas de taxas de câmbio:
