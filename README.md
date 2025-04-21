@@ -132,7 +132,7 @@ CREATE INDEX idx_taxa_moeda ON taxa_cambio_produto(moeda_id);
 ```
 
 ### Diagrama ER
-O diagrama ER do banco de dados está disponível em `docs/er-diagram.png`. Para gerar o diagrama:
+O diagrama ER do banco de dados está disponível em `docs/MercadoSRM ER Diagram.png`. Para gerar o diagrama:
 
 1. Usando Docker (recomendado):
 ```bash
